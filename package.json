@@ -1,0 +1,33 @@
+{
+  "name": "tiktok-signing-server-poc",
+  "version": "1.0.0",
+  "description": "Proof of concept TikTok signing server to replace EulerStream",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "tiktok",
+    "signing",
+    "server",
+    "poc"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^1.11.0",
+    "canvas": "^2.11.2",
+    "express": "^4.18.2",
+    "jsdom": "^23.0.1",
+    "signtok": "^1.2.0",
+    "tiktok-live-connector": "^2.0.7-alpha2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

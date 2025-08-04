@@ -199,3 +199,7 @@ SignTok/
 .kiro/logs/
 /.kiro
 /docs
+/src/scripts
+/src/README-docs
+/src/test-scripts
+/src/testing-docs
