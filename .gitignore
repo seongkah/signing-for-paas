@@ -203,3 +203,5 @@ SignTok/
 /src/test-scripts
 /src/testing-docs
 /src/simulation
+/scripts
+.env.local.example
