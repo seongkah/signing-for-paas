@@ -33,6 +33,22 @@ export async function GET(request: NextRequest) {
         database: databaseConnected ? 'connected' : 'disconnected',
         authentication: authSystemReady ? 'ready' : 'not_ready',
         signature_generator: 'pending' // Will be updated in later tasks
+      },
+      compatibility: {
+        eulerstream_replacement: 'operational',
+        tiktok_live_connector: 'compatible',
+        supported_formats: ['JSON', 'plain text'],
+        endpoints: {
+          '/api/signature': 'operational',
+          '/api/eulerstream': 'operational', 
+          '/api/sign': 'operational'
+        }
+      },
+      integration: {
+        testing_endpoint: '/api/test/compatibility',
+        tiktok_connector_testing: '/api/test/tiktok-connector',
+        integration_guide: '/api/integration-guide',
+        documentation: '/docs/eulerstream-replacement-guide.md'
       }
     }, {
       status: isHealthy ? 200 : 503

@@ -3,30 +3,36 @@ import { authenticateRequest, checkRateLimit, updateUsageQuota } from '@/lib/aut
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { usageLogOps } from '@/lib/database-operations'
 import { ErrorType } from '@/types'
+import { 
+  parseCompatibleRequest, 
+  formatCompatibleResponse, 
+  formatCompatibleError,
+  isValidTikTokUrl,
+  createMockSignatureResult,
+  detectRequestFormat
+} from '@/lib/compatibility-middleware'
 
 export async function POST(request: NextRequest) {
   const startTime = Date.now()
   let authContext: any = null
-  let roomUrl = ''
+  let compatContext: any = null
 
   try {
-    // Parse request body
-    const body = await request.json()
-    roomUrl = body.roomUrl
+    // Parse request using compatibility middleware
+    compatContext = await parseCompatibleRequest(request)
+    const { roomUrl, format } = compatContext
 
-    if (!roomUrl || typeof roomUrl !== 'string') {
-      return NextResponse.json(
-        {
-          success: false,
-          error: {
-            type: ErrorType.VALIDATION_ERROR,
-            message: 'roomUrl is required and must be a string',
-            code: 'MISSING_ROOM_URL',
-            timestamp: new Date()
-          }
-        },
-        { status: 400 }
+    // Validate TikTok URL format
+    if (!isValidTikTokUrl(roomUrl)) {
+      const responseTime = Date.now() - startTime
+      const errorResponse = formatCompatibleError(
+        'Invalid TikTok URL format',
+        'URL must be a valid TikTok live stream URL',
+        format,
+        responseTime
       )
+      
+      return NextResponse.json(errorResponse, { status: 400 })
     }
 
     // Authenticate request
@@ -42,13 +48,14 @@ export async function POST(request: NextRequest) {
         errorMessage: authResult.error?.message || 'Authentication failed'
       })
 
-      return NextResponse.json(
-        {
-          success: false,
-          error: authResult.error
-        },
-        { status: 401 }
+      const errorResponse = formatCompatibleError(
+        'Authentication failed',
+        authResult.error?.message || 'Invalid or missing authentication',
+        format,
+        responseTime
       )
+
+      return NextResponse.json(errorResponse, { status: 401 })
     }
 
     authContext = authResult.context
@@ -70,59 +77,65 @@ export async function POST(request: NextRequest) {
         errorMessage: rateLimitResult.error?.message || 'Rate limit exceeded'
       })
 
-      return NextResponse.json(
-        {
-          success: false,
-          error: rateLimitResult.error,
-          rateLimit: {
-            remaining: rateLimitResult.remaining || 0,
-            resetTime: rateLimitResult.resetTime,
-            limits: rateLimitResult.limits
-          }
-        },
-        { status: 429 }
+      const errorResponse = formatCompatibleError(
+        'Rate limit exceeded',
+        rateLimitResult.error?.message || 'Too many requests',
+        format,
+        responseTime
       )
+
+      return NextResponse.json(errorResponse, { status: 429 })
     }
 
-    // TODO: Implement actual signature generation logic in later tasks
-    // For now, return a placeholder response
+    // Generate signature using mock implementation
+    // TODO: Replace with actual SignatureGenerator integration in later tasks
     const responseTime = Date.now() - startTime
+    const signatureResult = createMockSignatureResult(roomUrl, responseTime)
     
     // Log successful request
     await usageLogOps.logRequest({
       userId: authContext.user.id,
       apiKeyId: authContext.apiKey?.id,
       roomUrl,
-      success: true,
+      success: signatureResult.success,
       responseTimeMs: responseTime
     })
 
     // Update usage quota for all users (tracking purposes)
     await updateUsageQuota(authContext.user.id, supabase)
 
-    return NextResponse.json({
-      success: true,
-      message: 'Signature generation endpoint - implementation pending',
-      data: {
-        roomUrl,
-        timestamp: new Date().toISOString(),
+    // Format response according to detected format
+    const response = formatCompatibleResponse(
+      { ...signatureResult.data, roomUrl },
+      format,
+      responseTime
+    )
+
+    // Add additional metadata for modern format
+    if (format === 'modern') {
+      const modernResponse = {
+        ...response,
         user: {
           id: authContext.user.id,
           tier: authContext.user.tier
         },
-        authMethod: authContext.authMethod
-      },
-      responseTimeMs: responseTime,
-      rateLimit: {
-        remaining: rateLimitResult.remaining,
-        resetTime: rateLimitResult.resetTime,
-        limits: rateLimitResult.limits
+        authMethod: authContext.authMethod,
+        rateLimit: {
+          remaining: rateLimitResult.remaining,
+          resetTime: rateLimitResult.resetTime,
+          limits: rateLimitResult.limits
+        }
       }
-    })
+      return NextResponse.json(modernResponse)
+    }
+
+    return NextResponse.json(response)
 
   } catch (error) {
     console.error('Signature generation error:', error)
     const responseTime = Date.now() - startTime
+    const format = compatContext?.format || detectRequestFormat(request)
+    const roomUrl = compatContext?.roomUrl || ''
     
     // Log error
     await usageLogOps.logRequest({
@@ -134,18 +147,14 @@ export async function POST(request: NextRequest) {
       errorMessage: error instanceof Error ? error.message : 'Unknown error'
     })
 
-    return NextResponse.json(
-      {
-        success: false,
-        error: {
-          type: ErrorType.INTERNAL_SERVER_ERROR,
-          message: 'Internal server error during signature generation',
-          code: 'INTERNAL_ERROR',
-          timestamp: new Date()
-        }
-      },
-      { status: 500 }
+    const errorResponse = formatCompatibleError(
+      'Internal server error',
+      error instanceof Error ? error.message : 'Unknown error occurred',
+      format,
+      responseTime
     )
+
+    return NextResponse.json(errorResponse, { status: 500 })
   }
 }
 
