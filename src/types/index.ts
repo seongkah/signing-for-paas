@@ -77,6 +77,74 @@ export interface QuotaStatus {
   }
 }
 
+// Enhanced Analytics Types
+export interface UserAnalytics {
+  totalRequests: number
+  successfulRequests: number
+  failedRequests: number
+  successRate: number
+  averageResponseTime: number
+  peakResponseTime: number
+  requestsPerDay: Array<{ date: string; count: number }>
+  errorBreakdown: Array<{ error: string; count: number }>
+  hourlyDistribution: Array<{ hour: number; count: number }>
+}
+
+export interface SystemAnalytics {
+  totalUsers: number
+  activeUsers: number
+  totalRequests: number
+  successRate: number
+  averageResponseTime: number
+  topErrors: Array<{ error: string; count: number }>
+  usageByTier: Array<{ tier: string; requests: number; users: number }>
+}
+
+// Rate Limiting Types
+export interface RateLimitInfo {
+  allowed: boolean
+  remaining?: number
+  resetTime?: Date
+  limits?: {
+    daily: { used: number; limit: number; remaining: number }
+    hourly: { used: number; limit: number; remaining: number }
+    burst: { used: number; limit: number; remaining: number }
+  }
+}
+
+// Quota Types
+export interface QuotaUsage {
+  requestCount: number
+  dailyLimit: number
+  remaining: number
+  resetTime: Date
+}
+
+export interface QuotaHistory {
+  date: string
+  requestCount: number
+  dailyLimit: number
+}
+
+// Alert Types
+export interface QuotaAlert {
+  userId: string
+  type: 'approaching_limit' | 'limit_exceeded' | 'unusual_activity'
+  severity: 'low' | 'medium' | 'high' | 'critical'
+  message: string
+  data: any
+  timestamp: Date
+}
+
+// Recommendation Types
+export interface QuotaRecommendation {
+  type: 'optimization' | 'upgrade' | 'warning' | 'info'
+  title: string
+  description: string
+  action?: string
+  priority: 'low' | 'medium' | 'high'
+}
+
 export interface ServiceMetrics {
   totalRequests: number
   successRate: number

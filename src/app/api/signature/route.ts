@@ -54,35 +54,34 @@ export async function POST(request: NextRequest) {
     authContext = authResult.context
     const supabase = createServerSupabaseClient()
 
-    // Check rate limits for free tier users
-    if (authContext.user.tier === 'free') {
-      const rateLimitResult = await checkRateLimit(authContext, supabase)
+    // Check rate limits for all users (different limits for different tiers)
+    const rateLimitResult = await checkRateLimit(authContext, supabase)
+    
+    if (!rateLimitResult.allowed) {
+      const responseTime = Date.now() - startTime
       
-      if (!rateLimitResult.allowed) {
-        const responseTime = Date.now() - startTime
-        
-        // Log rate limited request
-        await usageLogOps.logRequest({
-          userId: authContext.user.id,
-          apiKeyId: authContext.apiKey?.id,
-          roomUrl,
-          success: false,
-          responseTimeMs: responseTime,
-          errorMessage: rateLimitResult.error?.message || 'Rate limit exceeded'
-        })
+      // Log rate limited request
+      await usageLogOps.logRequest({
+        userId: authContext.user.id,
+        apiKeyId: authContext.apiKey?.id,
+        roomUrl,
+        success: false,
+        responseTimeMs: responseTime,
+        errorMessage: rateLimitResult.error?.message || 'Rate limit exceeded'
+      })
 
-        return NextResponse.json(
-          {
-            success: false,
-            error: rateLimitResult.error,
-            rateLimit: {
-              remaining: rateLimitResult.remaining || 0,
-              resetTime: rateLimitResult.resetTime
-            }
-          },
-          { status: 429 }
-        )
-      }
+      return NextResponse.json(
+        {
+          success: false,
+          error: rateLimitResult.error,
+          rateLimit: {
+            remaining: rateLimitResult.remaining || 0,
+            resetTime: rateLimitResult.resetTime,
+            limits: rateLimitResult.limits
+          }
+        },
+        { status: 429 }
+      )
     }
 
     // TODO: Implement actual signature generation logic in later tasks
@@ -98,10 +97,8 @@ export async function POST(request: NextRequest) {
       responseTimeMs: responseTime
     })
 
-    // Update usage quota for free tier users
-    if (authContext.user.tier === 'free') {
-      await updateUsageQuota(authContext.user.id, supabase)
-    }
+    // Update usage quota for all users (tracking purposes)
+    await updateUsageQuota(authContext.user.id, supabase)
 
     return NextResponse.json({
       success: true,
@@ -115,7 +112,12 @@ export async function POST(request: NextRequest) {
         },
         authMethod: authContext.authMethod
       },
-      responseTimeMs: responseTime
+      responseTimeMs: responseTime,
+      rateLimit: {
+        remaining: rateLimitResult.remaining,
+        resetTime: rateLimitResult.resetTime,
+        limits: rateLimitResult.limits
+      }
     })
 
   } catch (error) {
