@@ -8,7 +8,22 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "setup:dev": "./scripts/setup-environment.sh development",
+    "setup:staging": "./scripts/setup-environment.sh staging",
+    "setup:prod": "./scripts/setup-environment.sh production",
+    "deploy:dev": "./scripts/deploy-development.sh",
+    "deploy:staging": "./scripts/deploy-staging.sh",
+    "deploy:prod": "./scripts/deploy-production.sh",
+    "migrate:dev": "./scripts/setup-environment.sh migrate development",
+    "migrate:staging": "./scripts/setup-environment.sh migrate staging",
+    "migrate:prod": "./scripts/setup-environment.sh migrate production",
+    "validate:env": "./scripts/setup-environment.sh validate",
+    "db:reset": "supabase db reset",
+    "db:seed": "supabase db seed",
+    "supabase:start": "supabase start",
+    "supabase:stop": "supabase stop",
+    "supabase:status": "supabase status"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.1",

@@ -7,13 +7,25 @@
     "NEXT_PUBLIC_SUPABASE_URL": "@supabase-url",
     "NEXT_PUBLIC_SUPABASE_ANON_KEY": "@supabase-anon-key",
     "SUPABASE_SERVICE_ROLE_KEY": "@supabase-service-key",
-    "NEXTAUTH_SECRET": "@nextauth-secret"
+    "NEXTAUTH_SECRET": "@nextauth-secret",
+    "NODE_ENV": "@node-env"
+  },
+  "build": {
+    "env": {
+      "NEXT_PUBLIC_SUPABASE_URL": "@supabase-url",
+      "NEXT_PUBLIC_SUPABASE_ANON_KEY": "@supabase-anon-key",
+      "SUPABASE_SERVICE_ROLE_KEY": "@supabase-service-key",
+      "NEXTAUTH_SECRET": "@nextauth-secret",
+      "NODE_ENV": "production"
+    }
   },
   "functions": {
     "src/app/api/**": {
-      "maxDuration": 30
+      "maxDuration": 30,
+      "memory": 1024
     }
   },
+  "regions": ["iad1"],
   "headers": [
     {
       "source": "/api/(.*)",
@@ -28,7 +40,28 @@
         },
         {
           "key": "Access-Control-Allow-Headers",
-          "value": "Content-Type, Authorization, X-Requested-With"
+          "value": "Content-Type, Authorization, X-Requested-With, X-API-Key"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "no-cache, no-store, must-revalidate"
+        }
+      ]
+    },
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
         }
       ]
     }
@@ -39,8 +72,29 @@
       "destination": "/api/signature"
     },
     {
+      "source": "/api/sign",
+      "destination": "/api/sign"
+    },
+    {
       "source": "/api/health",
       "destination": "/api/health"
+    },
+    {
+      "source": "/api/eulerstream",
+      "destination": "/api/eulerstream"
+    }
+  ],
+  "redirects": [
+    {
+      "source": "/",
+      "destination": "/dashboard",
+      "permanent": false,
+      "has": [
+        {
+          "type": "cookie",
+          "key": "supabase-auth-token"
+        }
+      ]
     }
   ]
 }

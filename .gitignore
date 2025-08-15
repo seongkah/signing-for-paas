@@ -62,10 +62,15 @@ jspm_packages/
 
 # dotenv environment variable files
 .env
+.env.local
 .env.development.local
 .env.test.local
 .env.production.local
-.env.local
+
+# Environment files with actual secrets (keep templates)
+.env.development
+.env.staging
+.env.production
 
 # parcel-bundler cache (https://parceljs.org/)
 .cache
