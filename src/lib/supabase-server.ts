@@ -17,3 +17,18 @@ export const createServerSupabaseClient = () => {
     }
   )
 }
+
+// For use in database operations where we don't need cookies
+export const createServiceSupabaseClient = () => {
+  return createServerClient<Database>(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        get() { return undefined },
+        set() {},
+        remove() {},
+      },
+    }
+  )
+}
