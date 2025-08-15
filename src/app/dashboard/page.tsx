@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { createClient } from '@/lib/supabase-client'
 import { MonitoringDashboard } from '@/components/monitoring/MonitoringDashboard'
+import { ComprehensiveMonitoring } from '@/components/monitoring/ComprehensiveMonitoring'
 
 interface ApiKey {
   id: string
@@ -332,7 +333,10 @@ export default function DashboardPage() {
             )}
 
             {activeTab === 'monitoring' && (
-              <MonitoringDashboard />
+              <div className="space-y-6">
+                <ComprehensiveMonitoring />
+                <MonitoringDashboard />
+              </div>
             )}
 
             {activeTab === 'api-keys' && (

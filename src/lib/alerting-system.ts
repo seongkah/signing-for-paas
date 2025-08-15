@@ -12,7 +12,7 @@ interface AlertRule {
 }
 
 interface AlertCondition {
-  type: 'error_rate' | 'error_count' | 'response_time' | 'consecutive_failures';
+  type: 'error_rate' | 'error_count' | 'response_time' | 'consecutive_failures' | 'quota_usage' | 'service_degradation' | 'uptime';
   threshold: number;
   timeWindowMinutes: number;
   errorTypes?: ErrorType[];
@@ -131,6 +131,54 @@ export class AlertingSystem {
           severity: ErrorSeverity.MEDIUM,
           enabled: true,
           cooldownMinutes: 30
+        },
+        {
+          id: 'quota-limit-approaching',
+          name: 'Quota Limit Approaching',
+          condition: {
+            type: 'quota_usage',
+            threshold: 0.8, // 80% of quota
+            timeWindowMinutes: 60
+          },
+          severity: ErrorSeverity.MEDIUM,
+          enabled: true,
+          cooldownMinutes: 60
+        },
+        {
+          id: 'quota-limit-exceeded',
+          name: 'Quota Limit Exceeded',
+          condition: {
+            type: 'quota_usage',
+            threshold: 1.0, // 100% of quota
+            timeWindowMinutes: 5
+          },
+          severity: ErrorSeverity.HIGH,
+          enabled: true,
+          cooldownMinutes: 30
+        },
+        {
+          id: 'service-degradation',
+          name: 'Service Degradation Detected',
+          condition: {
+            type: 'service_degradation',
+            threshold: 0.5, // 50% of components degraded
+            timeWindowMinutes: 15
+          },
+          severity: ErrorSeverity.HIGH,
+          enabled: true,
+          cooldownMinutes: 20
+        },
+        {
+          id: 'uptime-degradation',
+          name: 'Uptime Below Threshold',
+          condition: {
+            type: 'uptime',
+            threshold: 0.99, // 99% uptime
+            timeWindowMinutes: 60
+          },
+          severity: ErrorSeverity.HIGH,
+          enabled: true,
+          cooldownMinutes: 60
         }
       ];
 
@@ -186,6 +234,15 @@ export class AlertingSystem {
       
       case 'response_time':
         return await this.checkResponseTime(condition, timeWindow);
+      
+      case 'quota_usage':
+        return await this.checkQuotaUsage(condition);
+      
+      case 'service_degradation':
+        return await this.checkServiceDegradation(condition);
+      
+      case 'uptime':
+        return await this.checkUptimeThreshold(condition, timeWindow);
       
       default:
         return false;
@@ -344,8 +401,82 @@ export class AlertingSystem {
       case 'response_time':
         return `Average response time exceeded ${condition.threshold}ms in the last ${condition.timeWindowMinutes} minutes`;
       
+      case 'quota_usage':
+        return `Quota usage exceeded ${(condition.threshold * 100).toFixed(1)}% threshold`;
+      
+      case 'service_degradation':
+        return `Service degradation detected: ${(condition.threshold * 100).toFixed(1)}% of components are degraded or unhealthy`;
+      
+      case 'uptime':
+        return `System uptime fell below ${(condition.threshold * 100).toFixed(1)}% in the last ${condition.timeWindowMinutes} minutes`;
+      
       default:
         return `Alert condition met for rule: ${rule.name}`;
+    }
+  }
+
+  private async checkQuotaUsage(condition: AlertCondition): Promise<boolean> {
+    try {
+      // Import quota monitor dynamically to avoid circular dependencies
+      const { quotaMonitor } = await import('./quota-monitor')
+      const systemQuota = await quotaMonitor.getSystemQuotaStatus()
+      
+      if (!systemQuota) return false
+
+      // Check if any quota is above threshold
+      const quotaChecks = [
+        systemQuota.quotaUtilization.free.averageUsage / 100, // Assuming daily limit of 100
+        // Add other quota checks as needed
+      ]
+
+      return quotaChecks.some(usage => usage >= condition.threshold)
+
+    } catch (error) {
+      console.error('Error checking quota usage:', error)
+      return false
+    }
+  }
+
+  private async checkServiceDegradation(condition: AlertCondition): Promise<boolean> {
+    try {
+      // Import health monitor dynamically to avoid circular dependencies
+      const { healthMonitor } = await import('./health-monitor')
+      const healthResult = await healthMonitor.performHealthCheck()
+      
+      const totalComponents = healthResult.components.length
+      const degradedComponents = healthResult.components.filter(c => 
+        c.status === 'degraded' || c.status === 'unhealthy'
+      ).length
+
+      const degradationRatio = totalComponents > 0 ? degradedComponents / totalComponents : 0
+      return degradationRatio >= condition.threshold
+
+    } catch (error) {
+      console.error('Error checking service degradation:', error)
+      return false
+    }
+  }
+
+  private async checkUptimeThreshold(condition: AlertCondition, timeWindow: Date): Promise<boolean> {
+    try {
+      const { data: uptimeRecords } = await this.supabase
+        .from('health_checks')
+        .select('data')
+        .eq('component', 'uptime')
+        .gte('created_at', timeWindow.toISOString())
+
+      if (!uptimeRecords || uptimeRecords.length === 0) return false
+
+      const upRecords = uptimeRecords.filter((record: any) => 
+        record.data && record.data.status === 'healthy'
+      ).length
+
+      const uptimePercentage = upRecords / uptimeRecords.length
+      return uptimePercentage < condition.threshold
+
+    } catch (error) {
+      console.error('Error checking uptime threshold:', error)
+      return false
     }
   }
 
