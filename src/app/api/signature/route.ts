@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { authenticateRequest, checkRateLimit, updateUsageQuota } from '@/lib/auth-middleware'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { usageLogOps } from '@/lib/database-operations'
-import { ErrorType } from '@/types'
+import { withErrorHandling, ApiContext } from '@/lib/api-wrapper'
+import { createValidationError, createAuthenticationError, createRateLimitError, createSignatureError } from '@/lib/error-handler'
 import { 
   parseCompatibleRequest, 
   formatCompatibleResponse, 
@@ -12,7 +13,7 @@ import {
   detectRequestFormat
 } from '@/lib/compatibility-middleware'
 
-export async function POST(request: NextRequest) {
+async function handleSignatureGeneration(request: NextRequest, context: ApiContext) {
   const startTime = Date.now()
   let authContext: any = null
   let compatContext: any = null
@@ -22,69 +23,49 @@ export async function POST(request: NextRequest) {
     compatContext = await parseCompatibleRequest(request)
     const { roomUrl, format } = compatContext
 
+    // Update context with request details
+    context.endpoint = `POST /api/signature (${format})`;
+
     // Validate TikTok URL format
     if (!isValidTikTokUrl(roomUrl)) {
-      const responseTime = Date.now() - startTime
-      const errorResponse = formatCompatibleError(
-        'Invalid TikTok URL format',
-        'URL must be a valid TikTok live stream URL',
-        format,
-        responseTime
-      )
-      
-      return NextResponse.json(errorResponse, { status: 400 })
+      throw createValidationError('Invalid TikTok URL format', { roomUrl, format });
     }
 
     // Authenticate request
     const authResult = await authenticateRequest(request)
     if (!authResult.success || !authResult.context) {
-      const responseTime = Date.now() - startTime
-      
       // Log failed request
       await usageLogOps.logRequest({
         roomUrl,
         success: false,
-        responseTimeMs: responseTime,
+        responseTimeMs: Date.now() - startTime,
         errorMessage: authResult.error?.message || 'Authentication failed'
       })
 
-      const errorResponse = formatCompatibleError(
-        'Authentication failed',
-        authResult.error?.message || 'Invalid or missing authentication',
-        format,
-        responseTime
-      )
-
-      return NextResponse.json(errorResponse, { status: 401 })
+      throw createAuthenticationError(authResult.error?.message || 'Invalid or missing authentication');
     }
 
     authContext = authResult.context
+    context.userId = authContext.user.id;
+    context.apiKeyId = authContext.apiKey?.id;
+
     const supabase = createServerSupabaseClient()
 
     // Check rate limits for all users (different limits for different tiers)
     const rateLimitResult = await checkRateLimit(authContext, supabase)
     
     if (!rateLimitResult.allowed) {
-      const responseTime = Date.now() - startTime
-      
       // Log rate limited request
       await usageLogOps.logRequest({
         userId: authContext.user.id,
         apiKeyId: authContext.apiKey?.id,
         roomUrl,
         success: false,
-        responseTimeMs: responseTime,
+        responseTimeMs: Date.now() - startTime,
         errorMessage: rateLimitResult.error?.message || 'Rate limit exceeded'
       })
 
-      const errorResponse = formatCompatibleError(
-        'Rate limit exceeded',
-        rateLimitResult.error?.message || 'Too many requests',
-        format,
-        responseTime
-      )
-
-      return NextResponse.json(errorResponse, { status: 429 })
+      throw createRateLimitError(rateLimitResult.error?.message || 'Too many requests');
     }
 
     // Generate signature using mock implementation
@@ -92,6 +73,10 @@ export async function POST(request: NextRequest) {
     const responseTime = Date.now() - startTime
     const signatureResult = createMockSignatureResult(roomUrl, responseTime)
     
+    if (!signatureResult.success) {
+      throw createSignatureError('Failed to generate signature', { roomUrl, details: signatureResult });
+    }
+
     // Log successful request
     await usageLogOps.logRequest({
       userId: authContext.user.id,
@@ -132,31 +117,42 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(response)
 
   } catch (error) {
-    console.error('Signature generation error:', error)
     const responseTime = Date.now() - startTime
     const format = compatContext?.format || detectRequestFormat(request)
     const roomUrl = compatContext?.roomUrl || ''
     
     // Log error
-    await usageLogOps.logRequest({
-      userId: authContext?.user?.id,
-      apiKeyId: authContext?.apiKey?.id,
-      roomUrl,
-      success: false,
-      responseTimeMs: responseTime,
-      errorMessage: error instanceof Error ? error.message : 'Unknown error'
-    })
+    try {
+      await usageLogOps.logRequest({
+        userId: authContext?.user?.id,
+        apiKeyId: authContext?.apiKey?.id,
+        roomUrl,
+        success: false,
+        responseTimeMs: responseTime,
+        errorMessage: error instanceof Error ? error.message : 'Unknown error'
+      })
+    } catch (logError) {
+      console.error('Failed to log error usage:', logError);
+    }
 
-    const errorResponse = formatCompatibleError(
-      'Internal server error',
-      error instanceof Error ? error.message : 'Unknown error occurred',
-      format,
-      responseTime
-    )
+    // For compatibility, we need to handle errors in the expected format
+    // But still let the error handler process it for logging
+    if (format && format !== 'modern') {
+      const errorResponse = formatCompatibleError(
+        'Signature generation failed',
+        error instanceof Error ? error.message : 'Unknown error occurred',
+        format,
+        responseTime
+      )
+      return NextResponse.json(errorResponse, { status: 500 })
+    }
 
-    return NextResponse.json(errorResponse, { status: 500 })
+    // Re-throw for centralized error handling
+    throw error;
   }
 }
+
+export const POST = withErrorHandling(handleSignatureGeneration, '/api/signature');
 
 export async function GET(request: NextRequest) {
   return NextResponse.json({
