@@ -9,6 +9,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { createClient } from '@/lib/supabase-client'
+import { MonitoringDashboard } from '@/components/monitoring/MonitoringDashboard'
 
 interface ApiKey {
   id: string
@@ -35,6 +36,7 @@ export default function DashboardPage() {
   const [newKeyName, setNewKeyName] = useState('')
   const [creatingKey, setCreatingKey] = useState(false)
   const [newApiKey, setNewApiKey] = useState('')
+  const [activeTab, setActiveTab] = useState<'overview' | 'monitoring' | 'api-keys'>('overview')
   const supabase = createClient()
 
   useEffect(() => {
@@ -166,6 +168,42 @@ export default function DashboardPage() {
                 Sign Out
               </Button>
             </div>
+            
+            {/* Navigation Tabs */}
+            <div className="border-b border-gray-200">
+              <nav className="-mb-px flex space-x-8">
+                <button
+                  onClick={() => setActiveTab('overview')}
+                  className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                    activeTab === 'overview'
+                      ? 'border-blue-500 text-blue-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  }`}
+                >
+                  Overview
+                </button>
+                <button
+                  onClick={() => setActiveTab('monitoring')}
+                  className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                    activeTab === 'monitoring'
+                      ? 'border-blue-500 text-blue-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  }`}
+                >
+                  Monitoring & Analytics
+                </button>
+                <button
+                  onClick={() => setActiveTab('api-keys')}
+                  className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                    activeTab === 'api-keys'
+                      ? 'border-blue-500 text-blue-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  }`}
+                >
+                  API Keys
+                </button>
+              </nav>
+            </div>
           </div>
         </header>
 
@@ -208,162 +246,175 @@ export default function DashboardPage() {
               </Alert>
             )}
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Account Information */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Account Information</CardTitle>
-                  <CardDescription>Your account details and tier</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div>
-                    <Label>Email</Label>
-                    <p className="text-sm text-gray-600">{userProfile?.email}</p>
-                  </div>
-                  <div>
-                    <Label>Account Tier</Label>
-                    <p className="text-sm text-gray-600 capitalize">
-                      {userProfile?.tier || 'free'}
-                    </p>
-                  </div>
-                  <div>
-                    <Label>Member Since</Label>
-                    <p className="text-sm text-gray-600">
-                      {userProfile?.created_at 
-                        ? new Date(userProfile.created_at).toLocaleDateString()
-                        : 'N/A'
-                      }
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
+            {/* Tab Content */}
+            {activeTab === 'overview' && (
+              <div className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Account Information */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Account Information</CardTitle>
+                      <CardDescription>Your account details and tier</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div>
+                        <Label>Email</Label>
+                        <p className="text-sm text-gray-600">{userProfile?.email}</p>
+                      </div>
+                      <div>
+                        <Label>Account Tier</Label>
+                        <p className="text-sm text-gray-600 capitalize">
+                          {userProfile?.tier || 'free'}
+                        </p>
+                      </div>
+                      <div>
+                        <Label>Member Since</Label>
+                        <p className="text-sm text-gray-600">
+                          {userProfile?.created_at 
+                            ? new Date(userProfile.created_at).toLocaleDateString()
+                            : 'N/A'
+                          }
+                        </p>
+                      </div>
+                    </CardContent>
+                  </Card>
 
-              {/* Usage Statistics */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Usage Statistics</CardTitle>
-                  <CardDescription>Your API usage this month</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div>
-                    <Label>Requests This Month</Label>
-                    <p className="text-2xl font-bold">0</p>
-                  </div>
-                  <div>
-                    <Label>Success Rate</Label>
-                    <p className="text-2xl font-bold">100%</p>
-                  </div>
-                  <div>
-                    <Label>Average Response Time</Label>
-                    <p className="text-2xl font-bold">0ms</p>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* API Keys Management */}
-            <Card className="mt-6">
-              <CardHeader>
-                <CardTitle>API Keys</CardTitle>
-                <CardDescription>
-                  Manage your API keys for unlimited access to the signature generation service
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                {/* Create New API Key */}
-                <div className="border rounded-lg p-4 bg-gray-50">
-                  <h3 className="text-lg font-semibold mb-4">Create New API Key</h3>
-                  <div className="flex space-x-4">
-                    <div className="flex-1">
-                      <Label htmlFor="keyName">API Key Name</Label>
-                      <Input
-                        id="keyName"
-                        placeholder="e.g., Production Server, Development"
-                        value={newKeyName}
-                        onChange={(e) => setNewKeyName(e.target.value)}
-                        disabled={creatingKey}
-                      />
-                    </div>
-                    <div className="flex items-end">
-                      <Button 
-                        onClick={createApiKey} 
-                        disabled={creatingKey || !newKeyName.trim()}
-                      >
-                        {creatingKey ? 'Creating...' : 'Create Key'}
-                      </Button>
-                    </div>
-                  </div>
+                  {/* Usage Statistics */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Usage Statistics</CardTitle>
+                      <CardDescription>Your API usage this month</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div>
+                        <Label>Requests This Month</Label>
+                        <p className="text-2xl font-bold">0</p>
+                      </div>
+                      <div>
+                        <Label>Success Rate</Label>
+                        <p className="text-2xl font-bold">100%</p>
+                      </div>
+                      <div>
+                        <Label>Average Response Time</Label>
+                        <p className="text-2xl font-bold">0ms</p>
+                      </div>
+                    </CardContent>
+                  </Card>
                 </div>
 
-                {/* Existing API Keys */}
-                <div>
-                  <h3 className="text-lg font-semibold mb-4">Your API Keys</h3>
-                  {apiKeys.length === 0 ? (
-                    <p className="text-gray-500 text-center py-8">
-                      No API keys created yet. Create your first API key above.
-                    </p>
-                  ) : (
-                    <div className="space-y-4">
-                      {apiKeys.map((key) => (
-                        <div key={key.id} className="border rounded-lg p-4">
-                          <div className="flex justify-between items-start">
-                            <div className="flex-1">
-                              <h4 className="font-semibold">{key.name}</h4>
-                              <p className="text-sm text-gray-500">
-                                Created: {new Date(key.created_at).toLocaleDateString()}
-                              </p>
-                              <p className="text-sm text-gray-500">
-                                Last used: {key.last_used 
-                                  ? new Date(key.last_used).toLocaleDateString()
-                                  : 'Never'
-                                }
-                              </p>
-                              <p className="text-xs text-gray-400 mt-2">
-                                Key ID: {key.id}
-                              </p>
-                            </div>
-                            <Button 
-                              variant="destructive" 
-                              size="sm"
-                              onClick={() => deleteApiKey(key.id)}
-                            >
-                              Delete
-                            </Button>
-                          </div>
-                        </div>
-                      ))}
+                {/* Quick Start Guide */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Quick Start</CardTitle>
+                    <CardDescription>
+                      Get started with the TikTok Signing Service
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div>
+                      <h4 className="font-semibold">API Endpoint</h4>
+                      <code className="bg-gray-100 px-2 py-1 rounded text-sm">
+                        POST {typeof window !== 'undefined' ? window.location.origin : ''}/api/signature
+                      </code>
                     </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Quick Start Guide */}
-            <Card className="mt-6">
-              <CardHeader>
-                <CardTitle>Quick Start</CardTitle>
-                <CardDescription>
-                  Get started with the TikTok Signing Service
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <h4 className="font-semibold">API Endpoint</h4>
-                  <code className="bg-gray-100 px-2 py-1 rounded text-sm">
-                    POST {window.location.origin}/api/signature
-                  </code>
-                </div>
-                <div>
-                  <h4 className="font-semibold">Example Request</h4>
-                  <pre className="bg-gray-100 p-4 rounded text-sm overflow-x-auto">
-{`curl -X POST ${window.location.origin}/api/signature \\
+                    <div>
+                      <h4 className="font-semibold">Example Request</h4>
+                      <pre className="bg-gray-100 p-4 rounded text-sm overflow-x-auto">
+{`curl -X POST ${typeof window !== 'undefined' ? window.location.origin : 'https://your-domain.com'}/api/signature \\
   -H "Content-Type: application/json" \\
   -H "Authorization: Bearer YOUR_API_KEY" \\
   -d '{"roomUrl": "https://www.tiktok.com/@username/live"}'`}
-                  </pre>
-                </div>
-              </CardContent>
-            </Card>
+                      </pre>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+
+            {activeTab === 'monitoring' && (
+              <MonitoringDashboard />
+            )}
+
+            {activeTab === 'api-keys' && (
+              <div className="space-y-6">
+                {/* API Keys Management */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>API Keys</CardTitle>
+                  <CardDescription>
+                    Manage your API keys for unlimited access to the signature generation service
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  {/* Create New API Key */}
+                  <div className="border rounded-lg p-4 bg-gray-50">
+                    <h3 className="text-lg font-semibold mb-4">Create New API Key</h3>
+                    <div className="flex space-x-4">
+                      <div className="flex-1">
+                        <Label htmlFor="keyName">API Key Name</Label>
+                        <Input
+                          id="keyName"
+                          placeholder="e.g., Production Server, Development"
+                          value={newKeyName}
+                          onChange={(e) => setNewKeyName(e.target.value)}
+                          disabled={creatingKey}
+                        />
+                      </div>
+                      <div className="flex items-end">
+                        <Button 
+                          onClick={createApiKey} 
+                          disabled={creatingKey || !newKeyName.trim()}
+                        >
+                          {creatingKey ? 'Creating...' : 'Create Key'}
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Existing API Keys */}
+                  <div>
+                    <h3 className="text-lg font-semibold mb-4">Your API Keys</h3>
+                    {apiKeys.length === 0 ? (
+                      <p className="text-gray-500 text-center py-8">
+                        No API keys created yet. Create your first API key above.
+                      </p>
+                    ) : (
+                      <div className="space-y-4">
+                        {apiKeys.map((key) => (
+                          <div key={key.id} className="border rounded-lg p-4">
+                            <div className="flex justify-between items-start">
+                              <div className="flex-1">
+                                <h4 className="font-semibold">{key.name}</h4>
+                                <p className="text-sm text-gray-500">
+                                  Created: {new Date(key.created_at).toLocaleDateString()}
+                                </p>
+                                <p className="text-sm text-gray-500">
+                                  Last used: {key.last_used 
+                                    ? new Date(key.last_used).toLocaleDateString()
+                                    : 'Never'
+                                  }
+                                </p>
+                                <p className="text-xs text-gray-400 mt-2">
+                                  Key ID: {key.id}
+                                </p>
+                              </div>
+                              <Button 
+                                variant="destructive" 
+                                size="sm"
+                                onClick={() => deleteApiKey(key.id)}
+                              >
+                                Delete
+                              </Button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+              </div>
+            )}
           </div>
         </main>
       </div>

@@ -40,6 +40,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const days = parseInt(searchParams.get('days') || '30', 10)
     const includeWarnings = searchParams.get('warnings') === 'true'
+    const includeLive = searchParams.get('live') === 'true'
 
     // Get user analytics
     const analytics = await analyticsOps.getUserAnalytics(user.id, days)
@@ -69,6 +70,38 @@ export async function GET(request: NextRequest) {
       warnings = warningResult.warnings
     }
 
+    // Get live metrics if requested
+    let liveMetrics: any = null
+    if (includeLive) {
+      // Get recent activity (last hour)
+      const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000)
+      const { data: recentLogs } = await supabase
+        .from('usage_logs')
+        .select('success, response_time_ms, created_at')
+        .eq('user_id', user.id)
+        .gte('created_at', oneHourAgo.toISOString())
+
+      if (recentLogs && recentLogs.length > 0) {
+        const totalRecent = recentLogs.length
+        const successfulRecent = recentLogs.filter(log => log.success).length
+        const avgResponseTime = recentLogs.reduce((sum, log) => sum + log.response_time_ms, 0) / totalRecent
+
+        liveMetrics = {
+          requestsLastHour: totalRecent,
+          successRateLastHour: totalRecent > 0 ? (successfulRecent / totalRecent) * 100 : 0,
+          avgResponseTimeLastHour: avgResponseTime,
+          lastActivity: recentLogs[recentLogs.length - 1]?.created_at
+        }
+      } else {
+        liveMetrics = {
+          requestsLastHour: 0,
+          successRateLastHour: 0,
+          avgResponseTimeLastHour: 0,
+          lastActivity: null
+        }
+      }
+    }
+
     return NextResponse.json({
       success: true,
       data: {
@@ -86,7 +119,8 @@ export async function GET(request: NextRequest) {
           current: quotaStatus,
           history: quotaHistory
         },
-        warnings
+        warnings,
+        ...(liveMetrics && { live: liveMetrics })
       }
     })
 
