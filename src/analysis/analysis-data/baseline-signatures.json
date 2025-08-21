@@ -1,0 +1,315 @@
+{
+  "timestamp": "2025-08-04T21:07:41.518Z",
+  "signaturePatterns": {
+    "signatureLength": [
+      47,
+      47,
+      47,
+      47,
+      47
+    ],
+    "signaturePrefix": [
+      "_02B4"
+    ],
+    "xBogusLength": [
+      28
+    ],
+    "xBogusPrefix": [
+      "DFSzs"
+    ]
+  },
+  "navigatorFingerprint": {
+    "deviceScaleFactor": 1,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.109 Safari/537.36",
+    "browser_language": "en-US",
+    "browser_platform": "",
+    "browser_name": "Mozilla",
+    "browser_version": "4.0"
+  },
+  "algorithmVersion": {
+    "signtokVersion": "^1.2.0",
+    "detectedAt": "2025-08-04T21:07:41.748Z"
+  },
+  "testCases": [
+    {
+      "url": "https://www.tiktok.com/@test1/live",
+      "success": true,
+      "signatureAnalysis": {
+        "signature": {
+          "length": 47,
+          "prefix": "_02B4Z6wo0",
+          "suffix": "_02B4Z6wo00f01t8vJ9QAAIBDFU2Lxys4jqbfPytAAN9o4a",
+          "pattern": {
+            "length": 47,
+            "hasNumbers": true,
+            "hasLetters": true,
+            "hasSpecialChars": true,
+            "startsWithUnderscore": true,
+            "base64Like": false
+          }
+        },
+        "xBogus": {
+          "length": 28,
+          "prefix": "DFSzswSOFv",
+          "suffix": "DFSzswSOFvkANVRUCn1bWLNmYCC2",
+          "pattern": {
+            "length": 28,
+            "hasNumbers": true,
+            "hasLetters": true,
+            "hasSpecialChars": false,
+            "startsWithUnderscore": false,
+            "base64Like": true
+          }
+        },
+        "xTtParams": {
+          "present": true,
+          "length": 236,
+          "pattern": {
+            "length": 236,
+            "hasNumbers": true,
+            "hasLetters": true,
+            "hasSpecialChars": true,
+            "startsWithUnderscore": false,
+            "base64Like": true
+          }
+        },
+        "navigator": {
+          "userAgentHash": "56dddf9a7bc7ee0e976f975418b34e37",
+          "browserName": "Mozilla",
+          "browserVersion": "4.0",
+          "deviceScaleFactor": 1
+        },
+        "signedUrl": {
+          "parameterCount": 3,
+          "hasSignature": true,
+          "hasXBogus": true
+        }
+      },
+      "timestamp": "2025-08-04T21:07:41.694Z"
+    },
+    {
+      "url": "https://www.tiktok.com/@test2/live",
+      "success": true,
+      "signatureAnalysis": {
+        "signature": {
+          "length": 47,
+          "prefix": "_02B4Z6wo0",
+          "suffix": "_02B4Z6wo00f01t8vJ9QAAIBDFU2Lxys60A7fPytAAN9o41",
+          "pattern": {
+            "length": 47,
+            "hasNumbers": true,
+            "hasLetters": true,
+            "hasSpecialChars": true,
+            "startsWithUnderscore": true,
+            "base64Like": false
+          }
+        },
+        "xBogus": {
+          "length": 28,
+          "prefix": "DFSzswSO9L",
+          "suffix": "DFSzswSO9LzANVRUCn1bWLNmYCCb",
+          "pattern": {
+            "length": 28,
+            "hasNumbers": true,
+            "hasLetters": true,
+            "hasSpecialChars": false,
+            "startsWithUnderscore": false,
+            "base64Like": true
+          }
+        },
+        "xTtParams": {
+          "present": true,
+          "length": 236,
+          "pattern": {
+            "length": 236,
+            "hasNumbers": true,
+            "hasLetters": true,
+            "hasSpecialChars": true,
+            "startsWithUnderscore": false,
+            "base64Like": true
+          }
+        },
+        "navigator": {
+          "userAgentHash": "56dddf9a7bc7ee0e976f975418b34e37",
+          "browserName": "Mozilla",
+          "browserVersion": "4.0",
+          "deviceScaleFactor": 1
+        },
+        "signedUrl": {
+          "parameterCount": 3,
+          "hasSignature": true,
+          "hasXBogus": true
+        }
+      },
+      "timestamp": "2025-08-04T21:07:41.703Z"
+    },
+    {
+      "url": "https://www.tiktok.com/@charlidamelio/live",
+      "success": true,
+      "signatureAnalysis": {
+        "signature": {
+          "length": 47,
+          "prefix": "_02B4Z6wo0",
+          "suffix": "_02B4Z6wo00f01t8vJ9QAAIBDFU2Lxys7HLbfPytAAN9o4a",
+          "pattern": {
+            "length": 47,
+            "hasNumbers": true,
+            "hasLetters": true,
+            "hasSpecialChars": true,
+            "startsWithUnderscore": true,
+            "base64Like": false
+          }
+        },
+        "xBogus": {
+          "length": 28,
+          "prefix": "DFSzswSOBy",
+          "suffix": "DFSzswSOByzANVRUCn1bWLNmYCtf",
+          "pattern": {
+            "length": 28,
+            "hasNumbers": true,
+            "hasLetters": true,
+            "hasSpecialChars": false,
+            "startsWithUnderscore": false,
+            "base64Like": true
+          }
+        },
+        "xTtParams": {
+          "present": true,
+          "length": 236,
+          "pattern": {
+            "length": 236,
+            "hasNumbers": true,
+            "hasLetters": true,
+            "hasSpecialChars": true,
+            "startsWithUnderscore": false,
+            "base64Like": true
+          }
+        },
+        "navigator": {
+          "userAgentHash": "56dddf9a7bc7ee0e976f975418b34e37",
+          "browserName": "Mozilla",
+          "browserVersion": "4.0",
+          "deviceScaleFactor": 1
+        },
+        "signedUrl": {
+          "parameterCount": 3,
+          "hasSignature": true,
+          "hasXBogus": true
+        }
+      },
+      "timestamp": "2025-08-04T21:07:41.716Z"
+    },
+    {
+      "url": "https://www.tiktok.com/@addisonre/live",
+      "success": true,
+      "signatureAnalysis": {
+        "signature": {
+          "length": 47,
+          "prefix": "_02B4Z6wo0",
+          "suffix": "_02B4Z6wo00f01t8vJ9QAAIBDFU2Lxys6dpLfPytAAN9oe7",
+          "pattern": {
+            "length": 47,
+            "hasNumbers": true,
+            "hasLetters": true,
+            "hasSpecialChars": true,
+            "startsWithUnderscore": true,
+            "base64Like": false
+          }
+        },
+        "xBogus": {
+          "length": 28,
+          "prefix": "DFSzswSO2T",
+          "suffix": "DFSzswSO2TGANVRUCn1bWLNmYCe8",
+          "pattern": {
+            "length": 28,
+            "hasNumbers": true,
+            "hasLetters": true,
+            "hasSpecialChars": false,
+            "startsWithUnderscore": false,
+            "base64Like": true
+          }
+        },
+        "xTtParams": {
+          "present": true,
+          "length": 236,
+          "pattern": {
+            "length": 236,
+            "hasNumbers": true,
+            "hasLetters": true,
+            "hasSpecialChars": true,
+            "startsWithUnderscore": false,
+            "base64Like": true
+          }
+        },
+        "navigator": {
+          "userAgentHash": "56dddf9a7bc7ee0e976f975418b34e37",
+          "browserName": "Mozilla",
+          "browserVersion": "4.0",
+          "deviceScaleFactor": 1
+        },
+        "signedUrl": {
+          "parameterCount": 3,
+          "hasSignature": true,
+          "hasXBogus": true
+        }
+      },
+      "timestamp": "2025-08-04T21:07:41.737Z"
+    },
+    {
+      "url": "https://www.tiktok.com/@bellapoarch/live",
+      "success": true,
+      "signatureAnalysis": {
+        "signature": {
+          "length": 47,
+          "prefix": "_02B4Z6wo0",
+          "suffix": "_02B4Z6wo00f01t8vJ9QAAIBDFU2Lxys7oobfPytAAN9o06",
+          "pattern": {
+            "length": 47,
+            "hasNumbers": true,
+            "hasLetters": true,
+            "hasSpecialChars": true,
+            "startsWithUnderscore": true,
+            "base64Like": false
+          }
+        },
+        "xBogus": {
+          "length": 28,
+          "prefix": "DFSzswSO6u",
+          "suffix": "DFSzswSO6uTANVRUCn1bWLNmYCCu",
+          "pattern": {
+            "length": 28,
+            "hasNumbers": true,
+            "hasLetters": true,
+            "hasSpecialChars": false,
+            "startsWithUnderscore": false,
+            "base64Like": true
+          }
+        },
+        "xTtParams": {
+          "present": true,
+          "length": 236,
+          "pattern": {
+            "length": 236,
+            "hasNumbers": true,
+            "hasLetters": true,
+            "hasSpecialChars": true,
+            "startsWithUnderscore": false,
+            "base64Like": true
+          }
+        },
+        "navigator": {
+          "userAgentHash": "56dddf9a7bc7ee0e976f975418b34e37",
+          "browserName": "Mozilla",
+          "browserVersion": "4.0",
+          "deviceScaleFactor": 1
+        },
+        "signedUrl": {
+          "parameterCount": 3,
+          "hasSignature": true,
+          "hasXBogus": true
+        }
+      },
+      "timestamp": "2025-08-04T21:07:41.747Z"
+    }
+  ]
+}

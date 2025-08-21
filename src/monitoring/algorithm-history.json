@@ -1,0 +1,536 @@
+{
+  "tests": [
+    {
+      "timestamp": "2025-08-04T20:54:51.834Z",
+      "testCases": [
+        {
+          "url": "https://www.tiktok.com/@test1/live",
+          "success": true,
+          "responseTime": 78,
+          "signature": "_02B4Z6wo00f01UBex8Q...",
+          "xBogus": "DFSzswSO-PTANVRUCn15...",
+          "error": null
+        },
+        {
+          "url": "https://www.tiktok.com/@test2/live",
+          "success": true,
+          "responseTime": 10,
+          "signature": "_02B4Z6wo00f01UBex8Q...",
+          "xBogus": "DFSzswSOutxANVRUCn15...",
+          "error": null
+        },
+        {
+          "url": "https://www.tiktok.com/@charlidamelio/live",
+          "success": true,
+          "responseTime": 13,
+          "signature": "_02B4Z6wo00f01UBex8Q...",
+          "xBogus": "DFSzswSOIF2ANVRUCn15...",
+          "error": null
+        },
+        {
+          "url": "https://www.tiktok.com/@addisonre/live",
+          "success": true,
+          "responseTime": 11,
+          "signature": "_02B4Z6wo00f01UBex8Q...",
+          "xBogus": "DFSzswSOX5vANVRUCn15...",
+          "error": null
+        },
+        {
+          "url": "https://www.tiktok.com/@bellapoarch/live",
+          "success": true,
+          "responseTime": 10,
+          "signature": "_02B4Z6wo00f01UBex8Q...",
+          "xBogus": "DFSzswSOcrtANVRUCn15...",
+          "error": null
+        }
+      ],
+      "successCount": 5,
+      "failureCount": 0,
+      "overallSuccess": true,
+      "averageResponseTime": 24.4,
+      "algorithmChangeDetected": false,
+      "alerts": []
+    },
+    {
+      "timestamp": "2025-08-04T21:07:55.579Z",
+      "testCases": [
+        {
+          "url": "https://www.tiktok.com/@test1/live",
+          "success": true,
+          "responseTime": 75,
+          "signature": "_02B4Z6wo00f01wTEuIQ...",
+          "xBogus": "DFSzswSO4h2ANVRUCn1b...",
+          "error": null
+        },
+        {
+          "url": "https://www.tiktok.com/@test2/live",
+          "success": true,
+          "responseTime": 12,
+          "signature": "_02B4Z6wo00f01wTEuIQ...",
+          "xBogus": "DFSzswSO40xANVRUCn1b...",
+          "error": null
+        },
+        {
+          "url": "https://www.tiktok.com/@test3/live",
+          "success": true,
+          "responseTime": 12,
+          "signature": "_02B4Z6wo00f01wTEuIQ...",
+          "xBogus": "DFSzswSOLwzANVRUCn1b...",
+          "error": null
+        },
+        {
+          "url": "https://www.tiktok.com/@charlidamelio/live",
+          "success": true,
+          "responseTime": 15,
+          "signature": "_02B4Z6wo00f01wTEuIQ...",
+          "xBogus": "DFSzswSOSebANVRUCn1b...",
+          "error": null
+        },
+        {
+          "url": "https://www.tiktok.com/@addisonre/live",
+          "success": true,
+          "responseTime": 9,
+          "signature": "_02B4Z6wo00f01wTEuIQ...",
+          "xBogus": "DFSzswSO5rvANVRUCn1b...",
+          "error": null
+        },
+        {
+          "url": "https://www.tiktok.com/@bellapoarch/live",
+          "success": true,
+          "responseTime": 10,
+          "signature": "_02B4Z6wo00f01wTEuIQ...",
+          "xBogus": "DFSzswSOFcUANVRUCn1b...",
+          "error": null
+        },
+        {
+          "url": "https://www.tiktok.com/@username/live",
+          "success": true,
+          "responseTime": 10,
+          "signature": "_02B4Z6wo00f01wTEuIQ...",
+          "xBogus": "DFSzswSOBxGANVRUCn1b...",
+          "error": null
+        },
+        {
+          "url": "https://www.tiktok.com/@testuser/live",
+          "success": true,
+          "responseTime": 9,
+          "signature": "_02B4Z6wo00f01wTEuIQ...",
+          "xBogus": "DFSzswSOm72ANVRUCn1b...",
+          "error": null
+        }
+      ],
+      "successCount": 8,
+      "failureCount": 0,
+      "overallSuccess": true,
+      "averageResponseTime": 19,
+      "algorithmChangeDetected": false,
+      "alerts": []
+    },
+    {
+      "timestamp": "2025-08-04T21:27:36.632Z",
+      "testCases": [
+        {
+          "url": "https://www.tiktok.com/@test1/live",
+          "success": true,
+          "responseTime": 198,
+          "signature": "_02B4Z6wo00f01ROdBIQ...",
+          "xBogus": "DFSzswSOrksANVRUCn1i...",
+          "error": null,
+          "formatIssues": [],
+          "rawData": {
+            "signature": "_02B4Z6wo00f01ROdBIQAAIBA2f-oluQilTUTjQgAACx5a3",
+            "verify_fp": "verify_68b8ccfa65726db8b3db0cc07821d696",
+            "signed_url": "https://www.tiktok.com/@test1/live?verifyFp=verify_68b8ccfa65726db8b3db0cc07821d696&_signature=_02B4Z6wo00f01ROdBIQAAIBA2f-oluQilTUTjQgAACx5a3&X-Bogus=DFSzswSOrksANVRUCn1iTyNmYCSa",
+            "x-tt-params": "FD03Epiq+FHXToC0VZg1hmqD0q5FFW14f54vXKvoBTCA8rU4oyaZKbtSYB7/qQXEeQ5pfla0YfEFBBXac5ll0ZXVl9DqFepKN/7YDSBfIZYDbH5fPiQHsRKz9rSBnXK0dPz3LsJeGe+AE1aEy5BD5IYXf1t0ELYWe+p0UaMvwELoQ03sxcGkvTxU0hRx2yw4jtVeb9upSD7C8lBVB/nNXl1VitaHgWF2GE5Mf0owPJo=",
+            "X-Bogus": "DFSzswSOrksANVRUCn1iTyNmYCSa",
+            "navigator": {
+              "deviceScaleFactor": 1,
+              "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.109 Safari/537.36",
+              "browser_language": "en-US",
+              "browser_platform": "",
+              "browser_name": "Mozilla",
+              "browser_version": "4.0"
+            }
+          }
+        },
+        {
+          "url": "https://www.tiktok.com/@test2/live",
+          "success": true,
+          "responseTime": 10,
+          "signature": "_02B4Z6wo00f01ROdBIQ...",
+          "xBogus": "DFSzswSO9ahANVRUCn1i...",
+          "error": null,
+          "formatIssues": [],
+          "rawData": {
+            "signature": "_02B4Z6wo00f01ROdBIQAAIBA2f-oluQipoUTjQgAACx53a",
+            "verify_fp": "verify_68b8ccfa65726db8b3db0cc07821d696",
+            "signed_url": "https://www.tiktok.com/@test2/live?verifyFp=verify_68b8ccfa65726db8b3db0cc07821d696&_signature=_02B4Z6wo00f01ROdBIQAAIBA2f-oluQipoUTjQgAACx53a&X-Bogus=DFSzswSO9ahANVRUCn1iTyNmYCCM",
+            "x-tt-params": "FD03Epiq+FHXToC0VZg1hmqD0q5FFW14f54vXKvoBTCA8rU4oyaZKbtSYB7/qQXEeQ5pfla0YfEFBBXac5ll0ZXVl9DqFepKN/7YDSBfIZa8KBYwYStdi5yIzQwVtgfP/5ZO6FIJwec86ZUwj99R4MVrt3vwIFpESL6wmMZg5917bm+pX4N+xkBjzcjL6P2CtIbqDxmWObeUcUeNgb3zg0m87yx7NX/pnzcZlr4SVGs=",
+            "X-Bogus": "DFSzswSO9ahANVRUCn1iTyNmYCCM",
+            "navigator": {
+              "deviceScaleFactor": 1,
+              "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.109 Safari/537.36",
+              "browser_language": "en-US",
+              "browser_platform": "",
+              "browser_name": "Mozilla",
+              "browser_version": "4.0"
+            }
+          }
+        },
+        {
+          "url": "https://www.tiktok.com/@test3/live",
+          "success": true,
+          "responseTime": 14,
+          "signature": "_02B4Z6wo00f01ROdBIQ...",
+          "xBogus": "DFSzswSO/RbANVRUCn1i...",
+          "error": null,
+          "formatIssues": [],
+          "rawData": {
+            "signature": "_02B4Z6wo00f01ROdBIQAAIBA2f-oluQilsETjQgAACx552",
+            "verify_fp": "verify_68b8ccfa65726db8b3db0cc07821d696",
+            "signed_url": "https://www.tiktok.com/@test3/live?verifyFp=verify_68b8ccfa65726db8b3db0cc07821d696&_signature=_02B4Z6wo00f01ROdBIQAAIBA2f-oluQilsETjQgAACx552&X-Bogus=DFSzswSO%2FRbANVRUCn1iTyNmYCtX",
+            "x-tt-params": "FD03Epiq+FHXToC0VZg1hmqD0q5FFW14f54vXKvoBTCA8rU4oyaZKbtSYB7/qQXEeQ5pfla0YfEFBBXac5ll0ZXVl9DqFepKN/7YDSBfIZbhJhUWXVWebUvI/fOxkgSwkgsHvv/63vl6Z3/WnbjNf+aJNfeIEf7UgkGVxFsEdu3DW/dI7KDr/+joRdIRuthx2PIGAeO/5oQgjGybVlzEXkHHIhhI8w9xOWFqFpiYAfs=",
+            "X-Bogus": "DFSzswSO/RbANVRUCn1iTyNmYCtX",
+            "navigator": {
+              "deviceScaleFactor": 1,
+              "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.109 Safari/537.36",
+              "browser_language": "en-US",
+              "browser_platform": "",
+              "browser_name": "Mozilla",
+              "browser_version": "4.0"
+            }
+          }
+        },
+        {
+          "url": "https://www.tiktok.com/@charlidamelio/live",
+          "success": true,
+          "responseTime": 18,
+          "signature": "_02B4Z6wo00f01ROdBIQ...",
+          "xBogus": "DFSzswSO0iiANVRUCn1i...",
+          "error": null,
+          "formatIssues": [],
+          "rawData": {
+            "signature": "_02B4Z6wo00f01ROdBIQAAIBA2f-oluQjOU0TjQgAACx567",
+            "verify_fp": "verify_68b8ccfa65726db8b3db0cc07821d696",
+            "signed_url": "https://www.tiktok.com/@charlidamelio/live?verifyFp=verify_68b8ccfa65726db8b3db0cc07821d696&_signature=_02B4Z6wo00f01ROdBIQAAIBA2f-oluQjOU0TjQgAACx567&X-Bogus=DFSzswSO0iiANVRUCn1iTyNmYCeB",
+            "x-tt-params": "FD03Epiq+FHXToC0VZg1hmqD0q5FFW14f54vXKvoBTCA8rU4oyaZKbtSYB7/qQXEeQ5pfla0YfEFBBXac5ll0ZXVl9DqFepKN/7YDSBfIZZqF14C9C2KXDaRTsmWqT3u+s6zoJeuoOMQOHLqtRdXcZs7gAdYiXmjR7wDvvMB/HXRBFzArCu3ktMpHluc7gCXb/rBOcTWABMZDHDFuXjaLjFgSiFzU6xL/1qu47kSVww=",
+            "X-Bogus": "DFSzswSO0iiANVRUCn1iTyNmYCeB",
+            "navigator": {
+              "deviceScaleFactor": 1,
+              "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.109 Safari/537.36",
+              "browser_language": "en-US",
+              "browser_platform": "",
+              "browser_name": "Mozilla",
+              "browser_version": "4.0"
+            }
+          }
+        },
+        {
+          "url": "https://www.tiktok.com/@addisonre/live",
+          "success": true,
+          "responseTime": 10,
+          "signature": "_02B4Z6wo00f01ROdBIQ...",
+          "xBogus": "DFSzswSO96iANVRUCn1i...",
+          "error": null,
+          "formatIssues": [],
+          "rawData": {
+            "signature": "_02B4Z6wo00f01ROdBIQAAIBA2f-oluQhVQkTjQgAACx51f",
+            "verify_fp": "verify_68b8ccfa65726db8b3db0cc07821d696",
+            "signed_url": "https://www.tiktok.com/@addisonre/live?verifyFp=verify_68b8ccfa65726db8b3db0cc07821d696&_signature=_02B4Z6wo00f01ROdBIQAAIBA2f-oluQhVQkTjQgAACx51f&X-Bogus=DFSzswSO96iANVRUCn1iTyNmYCty",
+            "x-tt-params": "FD03Epiq+FHXToC0VZg1hmqD0q5FFW14f54vXKvoBTCA8rU4oyaZKbtSYB7/qQXEeQ5pfla0YfEFBBXac5ll0ZXVl9DqFepKN/7YDSBfIZYwGQ6ZP/17kvP+reqT1w+2XdNnuV0p28k4ABl/yZiEGK/E3bAfOYiQw+YChKEnq67JompdIKm3QXIQ8g4vUiQwPkV3NXy5wFM3b5wpCu/wYrmj+mn10lh3WZXf5Cv1GBw=",
+            "X-Bogus": "DFSzswSO96iANVRUCn1iTyNmYCty",
+            "navigator": {
+              "deviceScaleFactor": 1,
+              "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.109 Safari/537.36",
+              "browser_language": "en-US",
+              "browser_platform": "",
+              "browser_name": "Mozilla",
+              "browser_version": "4.0"
+            }
+          }
+        },
+        {
+          "url": "https://www.tiktok.com/@bellapoarch/live",
+          "success": true,
+          "responseTime": 8,
+          "signature": "_02B4Z6wo00f01ROdBIQ...",
+          "xBogus": "DFSzswSO1YiANVRUCn1i...",
+          "error": null,
+          "formatIssues": [],
+          "rawData": {
+            "signature": "_02B4Z6wo00f01ROdBIQAAIBA2f-oluQj3JkTjQgAACx57d",
+            "verify_fp": "verify_68b8ccfa65726db8b3db0cc07821d696",
+            "signed_url": "https://www.tiktok.com/@bellapoarch/live?verifyFp=verify_68b8ccfa65726db8b3db0cc07821d696&_signature=_02B4Z6wo00f01ROdBIQAAIBA2f-oluQj3JkTjQgAACx57d&X-Bogus=DFSzswSO1YiANVRUCn1iTyNmYCSr",
+            "x-tt-params": "FD03Epiq+FHXToC0VZg1hmqD0q5FFW14f54vXKvoBTCA8rU4oyaZKbtSYB7/qQXEeQ5pfla0YfEFBBXac5ll0ZXVl9DqFepKN/7YDSBfIZYaIunYBFkKs+9OenY/8yZulEpe9IZXhLCA32A1ftqrQ8cnz5nIWSILAEWH2iGE7WbuWh+hf4ameG4ljW2u8hiXgSvtp7Fwc+iFtJ4LEE9auPQISkbgGpbXGD/RpKTsPlo=",
+            "X-Bogus": "DFSzswSO1YiANVRUCn1iTyNmYCSr",
+            "navigator": {
+              "deviceScaleFactor": 1,
+              "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.109 Safari/537.36",
+              "browser_language": "en-US",
+              "browser_platform": "",
+              "browser_name": "Mozilla",
+              "browser_version": "4.0"
+            }
+          }
+        },
+        {
+          "url": "https://www.tiktok.com/@username/live",
+          "success": true,
+          "responseTime": 12,
+          "signature": "_02B4Z6wo00f01ROdBIQ...",
+          "xBogus": "DFSzswSOGpbANVRUCn1i...",
+          "error": null,
+          "formatIssues": [],
+          "rawData": {
+            "signature": "_02B4Z6wo00f01ROdBIQAAIBA2f-oluQiu.kTjQgAACx59e",
+            "verify_fp": "verify_68b8ccfa65726db8b3db0cc07821d696",
+            "signed_url": "https://www.tiktok.com/@username/live?verifyFp=verify_68b8ccfa65726db8b3db0cc07821d696&_signature=_02B4Z6wo00f01ROdBIQAAIBA2f-oluQiu.kTjQgAACx59e&X-Bogus=DFSzswSOGpbANVRUCn1iTyNmYCSV",
+            "x-tt-params": "FD03Epiq+FHXToC0VZg1hmqD0q5FFW14f54vXKvoBTCA8rU4oyaZKbtSYB7/qQXEeQ5pfla0YfEFBBXac5ll0ZXVl9DqFepKN/7YDSBfIZYA+Ly/VH0Ugyl/Rxn6GHxXN14I3mUGYkUtjtco1O56kBjPd4fM7TJPAVB9yAWOY7RWMgZCDRvMxs180de74/oQEm56aKefQe16YmMJrHna6wQyHwXXHl/OzYQDSQSyI6k=",
+            "X-Bogus": "DFSzswSOGpbANVRUCn1iTyNmYCSV",
+            "navigator": {
+              "deviceScaleFactor": 1,
+              "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.109 Safari/537.36",
+              "browser_language": "en-US",
+              "browser_platform": "",
+              "browser_name": "Mozilla",
+              "browser_version": "4.0"
+            }
+          }
+        },
+        {
+          "url": "https://www.tiktok.com/@testuser/live",
+          "success": true,
+          "responseTime": 10,
+          "signature": "_02B4Z6wo00f01ROdBIQ...",
+          "xBogus": "DFSzswSOkFkANVRUCn1i...",
+          "error": null,
+          "formatIssues": [],
+          "rawData": {
+            "signature": "_02B4Z6wo00f01ROdBIQAAIBA2f-oluQhMN0TjQgAACx560",
+            "verify_fp": "verify_68b8ccfa65726db8b3db0cc07821d696",
+            "signed_url": "https://www.tiktok.com/@testuser/live?verifyFp=verify_68b8ccfa65726db8b3db0cc07821d696&_signature=_02B4Z6wo00f01ROdBIQAAIBA2f-oluQhMN0TjQgAACx560&X-Bogus=DFSzswSOkFkANVRUCn1iTyNmYCS3",
+            "x-tt-params": "FD03Epiq+FHXToC0VZg1hmqD0q5FFW14f54vXKvoBTCA8rU4oyaZKbtSYB7/qQXEeQ5pfla0YfEFBBXac5ll0ZXVl9DqFepKN/7YDSBfIZavInub7KiW9DUKNHR6rh2pCDXRcnj3PnrWr4QG/J/eObVUHqgh8oDRgHFCj5FPL0Y455cprF2zAC629U2ywurdlkU8UN+yLT1MI4cJK0c37Lsblr868+j3vm4xpi4vaXc=",
+            "X-Bogus": "DFSzswSOkFkANVRUCn1iTyNmYCS3",
+            "navigator": {
+              "deviceScaleFactor": 1,
+              "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.109 Safari/537.36",
+              "browser_language": "en-US",
+              "browser_platform": "",
+              "browser_name": "Mozilla",
+              "browser_version": "4.0"
+            }
+          }
+        }
+      ],
+      "successCount": 8,
+      "failureCount": 0,
+      "overallSuccess": true,
+      "averageResponseTime": 35,
+      "algorithmChangeDetected": false,
+      "alerts": []
+    }
+  ],
+  "lastKnownGood": {
+    "timestamp": "2025-08-04T21:27:36.632Z",
+    "testCases": [
+      {
+        "url": "https://www.tiktok.com/@test1/live",
+        "success": true,
+        "responseTime": 198,
+        "signature": "_02B4Z6wo00f01ROdBIQ...",
+        "xBogus": "DFSzswSOrksANVRUCn1i...",
+        "error": null,
+        "formatIssues": [],
+        "rawData": {
+          "signature": "_02B4Z6wo00f01ROdBIQAAIBA2f-oluQilTUTjQgAACx5a3",
+          "verify_fp": "verify_68b8ccfa65726db8b3db0cc07821d696",
+          "signed_url": "https://www.tiktok.com/@test1/live?verifyFp=verify_68b8ccfa65726db8b3db0cc07821d696&_signature=_02B4Z6wo00f01ROdBIQAAIBA2f-oluQilTUTjQgAACx5a3&X-Bogus=DFSzswSOrksANVRUCn1iTyNmYCSa",
+          "x-tt-params": "FD03Epiq+FHXToC0VZg1hmqD0q5FFW14f54vXKvoBTCA8rU4oyaZKbtSYB7/qQXEeQ5pfla0YfEFBBXac5ll0ZXVl9DqFepKN/7YDSBfIZYDbH5fPiQHsRKz9rSBnXK0dPz3LsJeGe+AE1aEy5BD5IYXf1t0ELYWe+p0UaMvwELoQ03sxcGkvTxU0hRx2yw4jtVeb9upSD7C8lBVB/nNXl1VitaHgWF2GE5Mf0owPJo=",
+          "X-Bogus": "DFSzswSOrksANVRUCn1iTyNmYCSa",
+          "navigator": {
+            "deviceScaleFactor": 1,
+            "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.109 Safari/537.36",
+            "browser_language": "en-US",
+            "browser_platform": "",
+            "browser_name": "Mozilla",
+            "browser_version": "4.0"
+          }
+        }
+      },
+      {
+        "url": "https://www.tiktok.com/@test2/live",
+        "success": true,
+        "responseTime": 10,
+        "signature": "_02B4Z6wo00f01ROdBIQ...",
+        "xBogus": "DFSzswSO9ahANVRUCn1i...",
+        "error": null,
+        "formatIssues": [],
+        "rawData": {
+          "signature": "_02B4Z6wo00f01ROdBIQAAIBA2f-oluQipoUTjQgAACx53a",
+          "verify_fp": "verify_68b8ccfa65726db8b3db0cc07821d696",
+          "signed_url": "https://www.tiktok.com/@test2/live?verifyFp=verify_68b8ccfa65726db8b3db0cc07821d696&_signature=_02B4Z6wo00f01ROdBIQAAIBA2f-oluQipoUTjQgAACx53a&X-Bogus=DFSzswSO9ahANVRUCn1iTyNmYCCM",
+          "x-tt-params": "FD03Epiq+FHXToC0VZg1hmqD0q5FFW14f54vXKvoBTCA8rU4oyaZKbtSYB7/qQXEeQ5pfla0YfEFBBXac5ll0ZXVl9DqFepKN/7YDSBfIZa8KBYwYStdi5yIzQwVtgfP/5ZO6FIJwec86ZUwj99R4MVrt3vwIFpESL6wmMZg5917bm+pX4N+xkBjzcjL6P2CtIbqDxmWObeUcUeNgb3zg0m87yx7NX/pnzcZlr4SVGs=",
+          "X-Bogus": "DFSzswSO9ahANVRUCn1iTyNmYCCM",
+          "navigator": {
+            "deviceScaleFactor": 1,
+            "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.109 Safari/537.36",
+            "browser_language": "en-US",
+            "browser_platform": "",
+            "browser_name": "Mozilla",
+            "browser_version": "4.0"
+          }
+        }
+      },
+      {
+        "url": "https://www.tiktok.com/@test3/live",
+        "success": true,
+        "responseTime": 14,
+        "signature": "_02B4Z6wo00f01ROdBIQ...",
+        "xBogus": "DFSzswSO/RbANVRUCn1i...",
+        "error": null,
+        "formatIssues": [],
+        "rawData": {
+          "signature": "_02B4Z6wo00f01ROdBIQAAIBA2f-oluQilsETjQgAACx552",
+          "verify_fp": "verify_68b8ccfa65726db8b3db0cc07821d696",
+          "signed_url": "https://www.tiktok.com/@test3/live?verifyFp=verify_68b8ccfa65726db8b3db0cc07821d696&_signature=_02B4Z6wo00f01ROdBIQAAIBA2f-oluQilsETjQgAACx552&X-Bogus=DFSzswSO%2FRbANVRUCn1iTyNmYCtX",
+          "x-tt-params": "FD03Epiq+FHXToC0VZg1hmqD0q5FFW14f54vXKvoBTCA8rU4oyaZKbtSYB7/qQXEeQ5pfla0YfEFBBXac5ll0ZXVl9DqFepKN/7YDSBfIZbhJhUWXVWebUvI/fOxkgSwkgsHvv/63vl6Z3/WnbjNf+aJNfeIEf7UgkGVxFsEdu3DW/dI7KDr/+joRdIRuthx2PIGAeO/5oQgjGybVlzEXkHHIhhI8w9xOWFqFpiYAfs=",
+          "X-Bogus": "DFSzswSO/RbANVRUCn1iTyNmYCtX",
+          "navigator": {
+            "deviceScaleFactor": 1,
+            "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.109 Safari/537.36",
+            "browser_language": "en-US",
+            "browser_platform": "",
+            "browser_name": "Mozilla",
+            "browser_version": "4.0"
+          }
+        }
+      },
+      {
+        "url": "https://www.tiktok.com/@charlidamelio/live",
+        "success": true,
+        "responseTime": 18,
+        "signature": "_02B4Z6wo00f01ROdBIQ...",
+        "xBogus": "DFSzswSO0iiANVRUCn1i...",
+        "error": null,
+        "formatIssues": [],
+        "rawData": {
+          "signature": "_02B4Z6wo00f01ROdBIQAAIBA2f-oluQjOU0TjQgAACx567",
+          "verify_fp": "verify_68b8ccfa65726db8b3db0cc07821d696",
+          "signed_url": "https://www.tiktok.com/@charlidamelio/live?verifyFp=verify_68b8ccfa65726db8b3db0cc07821d696&_signature=_02B4Z6wo00f01ROdBIQAAIBA2f-oluQjOU0TjQgAACx567&X-Bogus=DFSzswSO0iiANVRUCn1iTyNmYCeB",
+          "x-tt-params": "FD03Epiq+FHXToC0VZg1hmqD0q5FFW14f54vXKvoBTCA8rU4oyaZKbtSYB7/qQXEeQ5pfla0YfEFBBXac5ll0ZXVl9DqFepKN/7YDSBfIZZqF14C9C2KXDaRTsmWqT3u+s6zoJeuoOMQOHLqtRdXcZs7gAdYiXmjR7wDvvMB/HXRBFzArCu3ktMpHluc7gCXb/rBOcTWABMZDHDFuXjaLjFgSiFzU6xL/1qu47kSVww=",
+          "X-Bogus": "DFSzswSO0iiANVRUCn1iTyNmYCeB",
+          "navigator": {
+            "deviceScaleFactor": 1,
+            "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.109 Safari/537.36",
+            "browser_language": "en-US",
+            "browser_platform": "",
+            "browser_name": "Mozilla",
+            "browser_version": "4.0"
+          }
+        }
+      },
+      {
+        "url": "https://www.tiktok.com/@addisonre/live",
+        "success": true,
+        "responseTime": 10,
+        "signature": "_02B4Z6wo00f01ROdBIQ...",
+        "xBogus": "DFSzswSO96iANVRUCn1i...",
+        "error": null,
+        "formatIssues": [],
+        "rawData": {
+          "signature": "_02B4Z6wo00f01ROdBIQAAIBA2f-oluQhVQkTjQgAACx51f",
+          "verify_fp": "verify_68b8ccfa65726db8b3db0cc07821d696",
+          "signed_url": "https://www.tiktok.com/@addisonre/live?verifyFp=verify_68b8ccfa65726db8b3db0cc07821d696&_signature=_02B4Z6wo00f01ROdBIQAAIBA2f-oluQhVQkTjQgAACx51f&X-Bogus=DFSzswSO96iANVRUCn1iTyNmYCty",
+          "x-tt-params": "FD03Epiq+FHXToC0VZg1hmqD0q5FFW14f54vXKvoBTCA8rU4oyaZKbtSYB7/qQXEeQ5pfla0YfEFBBXac5ll0ZXVl9DqFepKN/7YDSBfIZYwGQ6ZP/17kvP+reqT1w+2XdNnuV0p28k4ABl/yZiEGK/E3bAfOYiQw+YChKEnq67JompdIKm3QXIQ8g4vUiQwPkV3NXy5wFM3b5wpCu/wYrmj+mn10lh3WZXf5Cv1GBw=",
+          "X-Bogus": "DFSzswSO96iANVRUCn1iTyNmYCty",
+          "navigator": {
+            "deviceScaleFactor": 1,
+            "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.109 Safari/537.36",
+            "browser_language": "en-US",
+            "browser_platform": "",
+            "browser_name": "Mozilla",
+            "browser_version": "4.0"
+          }
+        }
+      },
+      {
+        "url": "https://www.tiktok.com/@bellapoarch/live",
+        "success": true,
+        "responseTime": 8,
+        "signature": "_02B4Z6wo00f01ROdBIQ...",
+        "xBogus": "DFSzswSO1YiANVRUCn1i...",
+        "error": null,
+        "formatIssues": [],
+        "rawData": {
+          "signature": "_02B4Z6wo00f01ROdBIQAAIBA2f-oluQj3JkTjQgAACx57d",
+          "verify_fp": "verify_68b8ccfa65726db8b3db0cc07821d696",
+          "signed_url": "https://www.tiktok.com/@bellapoarch/live?verifyFp=verify_68b8ccfa65726db8b3db0cc07821d696&_signature=_02B4Z6wo00f01ROdBIQAAIBA2f-oluQj3JkTjQgAACx57d&X-Bogus=DFSzswSO1YiANVRUCn1iTyNmYCSr",
+          "x-tt-params": "FD03Epiq+FHXToC0VZg1hmqD0q5FFW14f54vXKvoBTCA8rU4oyaZKbtSYB7/qQXEeQ5pfla0YfEFBBXac5ll0ZXVl9DqFepKN/7YDSBfIZYaIunYBFkKs+9OenY/8yZulEpe9IZXhLCA32A1ftqrQ8cnz5nIWSILAEWH2iGE7WbuWh+hf4ameG4ljW2u8hiXgSvtp7Fwc+iFtJ4LEE9auPQISkbgGpbXGD/RpKTsPlo=",
+          "X-Bogus": "DFSzswSO1YiANVRUCn1iTyNmYCSr",
+          "navigator": {
+            "deviceScaleFactor": 1,
+            "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.109 Safari/537.36",
+            "browser_language": "en-US",
+            "browser_platform": "",
+            "browser_name": "Mozilla",
+            "browser_version": "4.0"
+          }
+        }
+      },
+      {
+        "url": "https://www.tiktok.com/@username/live",
+        "success": true,
+        "responseTime": 12,
+        "signature": "_02B4Z6wo00f01ROdBIQ...",
+        "xBogus": "DFSzswSOGpbANVRUCn1i...",
+        "error": null,
+        "formatIssues": [],
+        "rawData": {
+          "signature": "_02B4Z6wo00f01ROdBIQAAIBA2f-oluQiu.kTjQgAACx59e",
+          "verify_fp": "verify_68b8ccfa65726db8b3db0cc07821d696",
+          "signed_url": "https://www.tiktok.com/@username/live?verifyFp=verify_68b8ccfa65726db8b3db0cc07821d696&_signature=_02B4Z6wo00f01ROdBIQAAIBA2f-oluQiu.kTjQgAACx59e&X-Bogus=DFSzswSOGpbANVRUCn1iTyNmYCSV",
+          "x-tt-params": "FD03Epiq+FHXToC0VZg1hmqD0q5FFW14f54vXKvoBTCA8rU4oyaZKbtSYB7/qQXEeQ5pfla0YfEFBBXac5ll0ZXVl9DqFepKN/7YDSBfIZYA+Ly/VH0Ugyl/Rxn6GHxXN14I3mUGYkUtjtco1O56kBjPd4fM7TJPAVB9yAWOY7RWMgZCDRvMxs180de74/oQEm56aKefQe16YmMJrHna6wQyHwXXHl/OzYQDSQSyI6k=",
+          "X-Bogus": "DFSzswSOGpbANVRUCn1iTyNmYCSV",
+          "navigator": {
+            "deviceScaleFactor": 1,
+            "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.109 Safari/537.36",
+            "browser_language": "en-US",
+            "browser_platform": "",
+            "browser_name": "Mozilla",
+            "browser_version": "4.0"
+          }
+        }
+      },
+      {
+        "url": "https://www.tiktok.com/@testuser/live",
+        "success": true,
+        "responseTime": 10,
+        "signature": "_02B4Z6wo00f01ROdBIQ...",
+        "xBogus": "DFSzswSOkFkANVRUCn1i...",
+        "error": null,
+        "formatIssues": [],
+        "rawData": {
+          "signature": "_02B4Z6wo00f01ROdBIQAAIBA2f-oluQhMN0TjQgAACx560",
+          "verify_fp": "verify_68b8ccfa65726db8b3db0cc07821d696",
+          "signed_url": "https://www.tiktok.com/@testuser/live?verifyFp=verify_68b8ccfa65726db8b3db0cc07821d696&_signature=_02B4Z6wo00f01ROdBIQAAIBA2f-oluQhMN0TjQgAACx560&X-Bogus=DFSzswSOkFkANVRUCn1iTyNmYCS3",
+          "x-tt-params": "FD03Epiq+FHXToC0VZg1hmqD0q5FFW14f54vXKvoBTCA8rU4oyaZKbtSYB7/qQXEeQ5pfla0YfEFBBXac5ll0ZXVl9DqFepKN/7YDSBfIZavInub7KiW9DUKNHR6rh2pCDXRcnj3PnrWr4QG/J/eObVUHqgh8oDRgHFCj5FPL0Y455cprF2zAC629U2ywurdlkU8UN+yLT1MI4cJK0c37Lsblr868+j3vm4xpi4vaXc=",
+          "X-Bogus": "DFSzswSOkFkANVRUCn1iTyNmYCS3",
+          "navigator": {
+            "deviceScaleFactor": 1,
+            "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.109 Safari/537.36",
+            "browser_language": "en-US",
+            "browser_platform": "",
+            "browser_name": "Mozilla",
+            "browser_version": "4.0"
+          }
+        }
+      }
+    ],
+    "successCount": 8,
+    "failureCount": 0,
+    "overallSuccess": true,
+    "averageResponseTime": 35,
+    "algorithmChangeDetected": false,
+    "alerts": []
+  }
+}
