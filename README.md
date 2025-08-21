@@ -2,6 +2,8 @@
 
 A proof-of-concept implementation of a self-hosted TikTok signing server to replace EulerStream dependency.
 
+**Status:** Testing Vercel Git reconnection - Deployment trigger test
+
 ## Project Structure
 
 ```
