@@ -210,3 +210,6 @@ SignTok/
 /src/simulation
 /scripts
 .env.local.example
+/tests
+/documents
+/.github

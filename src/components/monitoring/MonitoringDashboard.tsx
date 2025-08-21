@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { MetricsCard } from './MetricsCard'
 import { QuotaUsageCard } from './QuotaUsageCard'
@@ -54,7 +54,7 @@ export function MonitoringDashboard({ className }: MonitoringDashboardProps) {
   const [error, setError] = useState<string | null>(null)
   const [refreshInterval, setRefreshInterval] = useState(60000) // 1 minute
 
-  const fetchDashboardData = async () => {
+  const fetchDashboardData = useCallback(async () => {
     if (!user) return
 
     try {
@@ -82,18 +82,18 @@ export function MonitoringDashboard({ className }: MonitoringDashboardProps) {
     } finally {
       setLoading(false)
     }
-  }
+  }, [user])
 
   useEffect(() => {
     if (user) {
       fetchDashboardData()
     }
-  }, [user])
+  }, [user, fetchDashboardData])
 
   useEffect(() => {
     const interval = setInterval(fetchDashboardData, refreshInterval)
     return () => clearInterval(interval)
-  }, [refreshInterval])
+  }, [refreshInterval, fetchDashboardData])
 
   const getChangeFromYesterday = (requestsPerDay: Array<{ date: string; count: number }>) => {
     if (requestsPerDay.length < 2) return null

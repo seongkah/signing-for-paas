@@ -67,7 +67,10 @@ const getEnvironmentConfig = (): EnvironmentConfig => {
   };
 
   // Environment-specific overrides
-  switch (nodeEnv) {
+  // Handle staging as a special case since NODE_ENV doesn't include it
+  const environment = process.env.ENVIRONMENT || nodeEnv;
+  
+  switch (environment as string) {
     case 'development':
       return {
         ...baseConfig,

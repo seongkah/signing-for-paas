@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -76,17 +76,7 @@ export function ErrorLogViewer({
   // Active tab
   const [activeTab, setActiveTab] = useState<'logs' | 'alerts'>('logs');
 
-  useEffect(() => {
-    fetchErrorLogs();
-  }, [currentPage, severityFilter, typeFilter, endpointFilter, searchTerm, dateRange]);
-
-  useEffect(() => {
-    if (activeTab === 'alerts' && showAlerts) {
-      fetchErrorAlerts();
-    }
-  }, [activeTab, showAlerts]);
-
-  const fetchErrorLogs = async () => {
+  const fetchErrorLogs = useCallback(async () => {
     try {
       setLoading(true);
       
@@ -137,7 +127,17 @@ export function ErrorLogViewer({
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentPage, severityFilter, typeFilter, endpointFilter, searchTerm, dateRange, userId, limit]);
+
+  useEffect(() => {
+    fetchErrorLogs();
+  }, [fetchErrorLogs]);
+
+  useEffect(() => {
+    if (activeTab === 'alerts' && showAlerts) {
+      fetchErrorAlerts();
+    }
+  }, [activeTab, showAlerts]);
 
   const fetchErrorAlerts = async () => {
     try {

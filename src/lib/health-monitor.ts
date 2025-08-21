@@ -365,6 +365,33 @@ export class HealthMonitor {
    * Check API endpoints health
    */
   private async checkAPIEndpointsHealth(): Promise<ServiceComponent[]> {
+    // Skip API endpoint health checks in development to prevent request loops
+    if (process.env.NODE_ENV === 'development') {
+      return [
+        {
+          name: 'api_health',
+          status: 'healthy',
+          responseTime: 0,
+          lastCheck: new Date(),
+          metadata: { skipped: 'development mode' }
+        },
+        {
+          name: 'api_eulerstream', 
+          status: 'healthy',
+          responseTime: 0,
+          lastCheck: new Date(),
+          metadata: { skipped: 'development mode' }
+        },
+        {
+          name: 'api_sign',
+          status: 'healthy', 
+          responseTime: 0,
+          lastCheck: new Date(),
+          metadata: { skipped: 'development mode' }
+        }
+      ]
+    }
+
     const endpoints = [
       { name: 'api_health', path: '/api/health' },
       { name: 'api_eulerstream', path: '/api/eulerstream' },

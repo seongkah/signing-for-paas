@@ -6,7 +6,6 @@ const nextConfig = {
   env: {
     NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
     NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-    NODE_ENV: process.env.NODE_ENV,
     DEBUG: process.env.DEBUG,
     LOG_LEVEL: process.env.LOG_LEVEL,
     ENABLE_ANALYTICS: process.env.ENABLE_ANALYTICS,

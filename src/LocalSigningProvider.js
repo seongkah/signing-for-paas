@@ -52,16 +52,16 @@ class LocalSigningProvider {
         });
       }
 
-      // Call our local signing server
+      // Call our local signing server (using eulerstream endpoint for compatibility)
       const response = await axios.post(
-        `${this.serverUrl}/signature`,
-        tiktokUrl,
+        `${this.serverUrl}/eulerstream`,
+        { url: tiktokUrl },
         {
           headers: {
-            'Content-Type': 'text/plain',
+            'Content-Type': 'application/json',
             'User-Agent': 'TikTok-Live-Connector-LocalSigning/1.0.0'
           },
-          timeout: 10000 // 10 second timeout
+          timeout: 30000 // 30 second timeout for initial signature generation
         }
       );
 
@@ -72,8 +72,8 @@ class LocalSigningProvider {
         });
       }
 
-      if (response.data.status !== 'ok') {
-        throw new Error(`Signing server returned error: ${response.data.error}`);
+      if (response.data.success !== true) {
+        throw new Error(`Signing server returned error: ${response.data.error || response.data.message}`);
       }
 
       const signatureData = response.data.data;
@@ -85,14 +85,21 @@ class LocalSigningProvider {
       // TikTok uses different WebSocket endpoints, this is a common one
       const wsUrl = 'wss://webcast5-ws-web-lf.tiktok.com/webcast/im/push/v2/';
       
-      // Parse the signed URL to extract parameters
-      const signedUrl = new URL(signatureData.signed_url);
+      // Parse the signed URL to extract parameters (if it's a valid URL)
       const wsParams = {};
       
-      // Copy parameters from the signed URL
-      signedUrl.searchParams.forEach((value, key) => {
-        wsParams[key] = value;
-      });
+      try {
+        const signedUrl = new URL(signatureData.signed_url);
+        // Copy parameters from the signed URL
+        signedUrl.searchParams.forEach((value, key) => {
+          wsParams[key] = value;
+        });
+      } catch (urlError) {
+        // If signed_url is not a valid URL, just use empty params
+        if (this.logger) {
+          this.logger.debug('LocalSigningProvider: signed_url is not a valid URL, using direct signature data');
+        }
+      }
       
       // Add additional required parameters for WebSocket connection
       wsParams['X-Bogus'] = signatureData['X-Bogus'];
@@ -103,6 +110,25 @@ class LocalSigningProvider {
       wsParams['version_code'] = '180800';
       wsParams['webcast_sdk_version'] = '1.3.0';
       wsParams['update_version_code'] = '1.3.0';
+      
+      // Add parameters required by TikTok Live Connector
+      if (sessionId) {
+        wsParams['tt-target-idc'] = 'useast1a'; // Default IDC for US East
+        wsParams['sessionId'] = sessionId;
+      }
+      
+      // Add room and user parameters
+      if (roomId) {
+        wsParams['room_id'] = roomId;
+      }
+      if (uniqueId) {
+        wsParams['unique_id'] = uniqueId;
+      }
+      
+      // Add agent preferences if provided
+      if (preferredAgentIds && preferredAgentIds.length > 0) {
+        wsParams['preferred_agent_ids'] = preferredAgentIds.join(',');
+      }
       
       // Create the ProtoMessageFetchResult-like object
       const mockProtoResult = {
@@ -145,7 +171,7 @@ class LocalSigningProvider {
   async testConnection() {
     try {
       const response = await axios.get(`${this.serverUrl}/health`, {
-        timeout: 5000
+        timeout: 30000
       });
       
       const isHealthy = response.status === 200 && response.data.status === 'healthy';
