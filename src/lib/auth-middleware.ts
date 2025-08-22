@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server'
-import { createServerSupabaseClient } from './supabase-server'
+import { createServiceSupabaseClient, createServerSupabaseClient } from './supabase-server'
 import { createHash } from 'crypto'
 import { ErrorType } from '@/types'
 
@@ -35,7 +35,8 @@ export async function authenticateRequest(request: NextRequest): Promise<{
   error?: AuthError
 }> {
   try {
-    const supabase = createServerSupabaseClient()
+    // Use service role client for authentication middleware to bypass RLS
+    const supabase = createServiceSupabaseClient()
 
     // Check for API key in Authorization header or X-API-Key header
     const authHeader = request.headers.get('authorization')
@@ -175,8 +176,9 @@ export async function authenticateRequest(request: NextRequest): Promise<{
 
     console.log('🔍 DEBUG AUTH: No API key found, checking session-based auth')
     
-    // Check for session-based authentication
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    // For session-based auth, use regular server client that includes cookies
+    const sessionSupabase = createServerSupabaseClient()
+    const { data: { user }, error: authError } = await sessionSupabase.auth.getUser()
 
     console.log('  - Session auth result:')
     console.log('    - Error:', authError?.message || 'None')
@@ -195,7 +197,7 @@ export async function authenticateRequest(request: NextRequest): Promise<{
       }
     }
 
-    // Get user data from our users table
+    // Get user data from our users table using service role
     const { data: userData, error: userError } = await supabase
       .from('users')
       .select('*')
