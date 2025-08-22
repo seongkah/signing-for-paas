@@ -105,20 +105,19 @@ export async function authenticateRequest(request: NextRequest): Promise<{
       return {
         success: true,
         context: {
-            user: {
-              id: user.id,
-              email: user.email,
-              tier: user.tier,
-              isActive: user.is_active
-            },
-            apiKey: {
-              id: apiKeyData.id,
-              userId: apiKeyData.user_id,
-              name: apiKeyData.name
-            },
-            isAuthenticated: true,
-            authMethod: 'api_key'
-          }
+          user: {
+            id: user.id,
+            email: user.email,
+            tier: user.tier,
+            isActive: user.is_active
+          },
+          apiKey: {
+            id: apiKeyData.id,
+            userId: apiKeyData.user_id,
+            name: apiKeyData.name
+          },
+          isAuthenticated: true,
+          authMethod: 'api_key'
         }
       }
     }
