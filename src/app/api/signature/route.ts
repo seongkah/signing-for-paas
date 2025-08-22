@@ -31,41 +31,32 @@ async function handleSignatureGeneration(request: NextRequest, context: ApiConte
       throw createValidationError('Invalid TikTok URL format', { roomUrl, format });
     }
 
-    // Authenticate request
+    // Authenticate request (optional - supports both free and paid tiers)
     const authResult = await authenticateRequest(request)
-    if (!authResult.success || !authResult.context) {
-      // Log failed request
-      await usageLogOps.logRequest({
-        roomUrl,
-        success: false,
-        responseTimeMs: Date.now() - startTime,
-        errorMessage: authResult.error?.message || 'Authentication failed'
-      })
-
-      throw createAuthenticationError(authResult.error?.message || 'Invalid or missing authentication');
-    }
-
-    authContext = authResult.context
-    context.userId = authContext.user.id;
-    context.apiKeyId = authContext.apiKey?.id;
-
-    const supabase = createServerSupabaseClient()
-
-    // Check rate limits for all users (different limits for different tiers)
-    const rateLimitResult = await checkRateLimit(authContext, supabase)
     
-    if (!rateLimitResult.allowed) {
-      // Log rate limited request
-      await usageLogOps.logRequest({
-        userId: authContext.user.id,
-        apiKeyId: authContext.apiKey?.id,
-        roomUrl,
-        success: false,
-        responseTimeMs: Date.now() - startTime,
-        errorMessage: rateLimitResult.error?.message || 'Rate limit exceeded'
-      })
+    if (authResult.success && authResult.context) {
+      authContext = authResult.context
+      context.userId = authContext.user.id;
+      context.apiKeyId = authContext.apiKey?.id;
 
-      throw createRateLimitError(rateLimitResult.error?.message || 'Too many requests');
+      const supabase = createServerSupabaseClient()
+
+      // Check rate limits for authenticated users
+      const rateLimitResult = await checkRateLimit(authContext, supabase)
+      
+      if (!rateLimitResult.allowed) {
+        // Log rate limited request
+        await usageLogOps.logRequest({
+          userId: authContext.user.id,
+          apiKeyId: authContext.apiKey?.id,
+          roomUrl,
+          success: false,
+          responseTimeMs: Date.now() - startTime,
+          errorMessage: rateLimitResult.error?.message || 'Rate limit exceeded'
+        })
+
+        throw createRateLimitError(rateLimitResult.error?.message || 'Too many requests');
+      }
     }
 
     // Generate signature using mock implementation
@@ -79,15 +70,18 @@ async function handleSignatureGeneration(request: NextRequest, context: ApiConte
 
     // Log successful request
     await usageLogOps.logRequest({
-      userId: authContext.user.id,
-      apiKeyId: authContext.apiKey?.id,
+      userId: authContext?.user?.id,
+      apiKeyId: authContext?.apiKey?.id,
       roomUrl,
       success: signatureResult.success,
       responseTimeMs: responseTime
     })
 
-    // Update usage quota for all users (tracking purposes)
-    await updateUsageQuota(authContext.user.id, supabase)
+    // Update usage quota for authenticated users only
+    if (authContext) {
+      const supabase = createServerSupabaseClient()
+      await updateUsageQuota(authContext.user.id, supabase)
+    }
 
     // Format response according to detected format
     const response = formatCompatibleResponse(
@@ -100,16 +94,14 @@ async function handleSignatureGeneration(request: NextRequest, context: ApiConte
     if (format === 'modern') {
       const modernResponse = {
         ...response,
-        user: {
-          id: authContext.user.id,
-          tier: authContext.user.tier
-        },
-        authMethod: authContext.authMethod,
-        rateLimit: {
-          remaining: rateLimitResult.remaining,
-          resetTime: rateLimitResult.resetTime,
-          limits: rateLimitResult.limits
-        }
+        ...(authContext && {
+          user: {
+            id: authContext.user.id,
+            tier: authContext.user.tier
+          },
+          authMethod: authContext.authMethod
+        }),
+        tier: authContext?.user?.tier || 'free'
       }
       return NextResponse.json(modernResponse)
     }
