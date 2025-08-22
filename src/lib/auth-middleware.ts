@@ -52,8 +52,6 @@ export async function authenticateRequest(request: NextRequest): Promise<{
     if (apiKey) {
       // This is an API key (support both sk_ prefixed and raw format)
       const keyHash = createHash('sha256').update(apiKey).digest('hex')
-      console.log('DEBUG: API Key received:', apiKey.substring(0, 8) + '...')
-      console.log('DEBUG: API Key hash:', keyHash)
       
       // First get the API key
       const { data: apiKeyData, error: keyError } = await supabase
@@ -62,8 +60,6 @@ export async function authenticateRequest(request: NextRequest): Promise<{
         .eq('key_hash', keyHash)
         .eq('is_active', true)
         .single()
-        
-      console.log('DEBUG: API key query result:', apiKeyData, keyError)
 
       if (keyError || !apiKeyData) {
         return {

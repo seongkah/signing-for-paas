@@ -44,38 +44,6 @@ async function handleSignatureGeneration(request: NextRequest, context: ApiConte
     // Extract user IP address for rate limiting
     userIP = extractIPAddress(request)
 
-    // TEMP DEBUG: Check for API key directly
-    const apiKeyHeader = request.headers.get('x-api-key') || request.headers.get('authorization')?.replace('Bearer ', '')
-    console.log('DEBUG SIGNATURE: API key header:', apiKeyHeader?.substring(0, 8) + '...')
-    
-    // If we have the specific API key, bypass IP limits temporarily
-    if (apiKeyHeader === 'ce9af56a-6cc1-4820-83fb-cfcaaf87cf9c') {
-      console.log('DEBUG SIGNATURE: BYPASSING IP LIMITS FOR SPECIFIC API KEY')
-      // Generate signature using mock implementation
-      const responseTime = Date.now() - startTime
-      const signatureResult = createMockSignatureResult(roomUrl, responseTime)
-      
-      // Format response according to detected format
-      const response = formatCompatibleResponse(
-        { ...signatureResult.data, roomUrl },
-        format,
-        responseTime
-      )
-
-      return NextResponse.json({
-        ...response,
-        tier: 'unlimited',
-        authMethod: 'api_key',
-        debug: 'BYPASSED IP LIMITS'
-      }, { 
-        headers: {
-          'X-RateLimit-Tier': 'unlimited',
-          'X-RateLimit-Limit': 'unlimited',
-          'X-RateLimit-Remaining': 'unlimited'
-        }
-      })
-    }
-
     // Authenticate request (optional - determines tier)
     const authResult = await authenticateRequest(request)
     
