@@ -5,9 +5,6 @@ const nextConfig = {
   images: {
     domains: ['localhost'],
   },
-  experimental: {
-    typedRoutes: true,
-  },
   webpack: (config) => {
     config.resolve.alias = {
       ...config.resolve.alias,
@@ -35,9 +32,6 @@ const nextConfig = {
       removeConsole: {
         exclude: ['error'],
       },
-    },
-    experimental: {
-      optimizeCss: true,
     },
   }),
   // Security headers for production
