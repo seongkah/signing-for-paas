@@ -53,19 +53,10 @@ export async function authenticateRequest(request: NextRequest): Promise<{
       // This is an API key (support both sk_ prefixed and raw format)
       const keyHash = createHash('sha256').update(apiKey).digest('hex')
       
+      // First get the API key
       const { data: apiKeyData, error: keyError } = await supabase
         .from('api_keys')
-        .select(`
-          id,
-          user_id,
-          name,
-          users!inner (
-            id,
-            email,
-            tier,
-            is_active
-          )
-        `)
+        .select('id, user_id, name')
         .eq('key_hash', keyHash)
         .eq('is_active', true)
         .single()
@@ -82,9 +73,26 @@ export async function authenticateRequest(request: NextRequest): Promise<{
         }
       }
 
-      const user = Array.isArray(apiKeyData.users) ? apiKeyData.users[0] : apiKeyData.users
+      // Now get the user data
+      const { data: userData, error: userError } = await supabase
+        .from('users')
+        .select('id, email, tier, is_active')
+        .eq('id', apiKeyData.user_id)
+        .single()
 
-      if (!user.is_active) {
+      if (userError || !userData) {
+        return {
+          success: false,
+          error: {
+            type: ErrorType.AUTHENTICATION_ERROR,
+            message: 'Invalid API key - user not found',
+            code: 'INVALID_API_KEY',
+            timestamp: new Date()
+          }
+        }
+      }
+
+      if (!userData.is_active) {
         return {
           success: false,
           error: {
@@ -106,10 +114,10 @@ export async function authenticateRequest(request: NextRequest): Promise<{
         success: true,
         context: {
           user: {
-            id: user.id,
-            email: user.email,
-            tier: user.tier,
-            isActive: user.is_active
+            id: userData.id,
+            email: userData.email,
+            tier: userData.tier,
+            isActive: userData.is_active
           },
           apiKey: {
             id: apiKeyData.id,
