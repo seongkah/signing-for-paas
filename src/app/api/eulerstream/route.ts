@@ -3,6 +3,14 @@ import { authenticateRequest, checkRateLimit, updateUsageQuota } from '@/lib/aut
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { usageLogOps } from '@/lib/database-operations'
 import { ErrorType } from '@/types'
+import {
+  extractIPAddress,
+  checkIPRateLimit,
+  checkIPBurstLimit,
+  incrementIPUsage,
+  logIPRequest,
+  createUpgradePrompt
+} from '@/lib/ip-rate-limiting'
 
 /**
  * EulerStream-compatible API endpoint
@@ -13,6 +21,7 @@ export async function POST(request: NextRequest) {
   const startTime = Date.now()
   let authContext: any = null
   let roomUrl = ''
+  let userIP = 'unknown'
 
   try {
     // Parse request body - EulerStream expects JSON with specific format
@@ -32,15 +41,18 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Authenticate request (optional for EulerStream compatibility)
-    // Some users might call this endpoint without authentication for testing
+    // Extract user IP address for rate limiting
+    userIP = extractIPAddress(request)
+
+    // Authenticate request (optional - determines tier)
     const authResult = await authenticateRequest(request)
     
     if (authResult.success && authResult.context) {
+      // TIER 2: API KEY USER (Unlimited)
       authContext = authResult.context
       const supabase = createServerSupabaseClient()
 
-      // Check rate limits for authenticated users
+      // Check rate limits for authenticated users (should be unlimited)
       const rateLimitResult = await checkRateLimit(authContext, supabase)
       
       if (!rateLimitResult.allowed) {
@@ -68,25 +80,92 @@ export async function POST(request: NextRequest) {
           { status: 429 }
         )
       }
+    } else {
+      // TIER 1: ANONYMOUS USER (IP-based limits)
+      
+      // Check IP-based daily rate limit
+      const ipRateLimitResult = await checkIPRateLimit(userIP)
+      
+      if (!ipRateLimitResult.allowed) {
+        await logIPRequest({
+          ipAddress: userIP,
+          roomUrl,
+          success: false,
+          responseTimeMs: Date.now() - startTime,
+          errorMessage: 'Daily IP rate limit exceeded'
+        })
+
+        // Return EulerStream-compatible rate limit response
+        return NextResponse.json({
+          success: false,
+          error: 'Daily rate limit exceeded',
+          message: `You've reached your free tier limit of ${ipRateLimitResult.dailyLimit} requests per day`,
+          resetTime: ipRateLimitResult.resetTime.toISOString(),
+          upgrade: {
+            message: 'Get unlimited access with an API key',
+            action: 'Visit https://signing-for-paas.vercel.app/dashboard'
+          }
+        }, { 
+          status: 429,
+          headers: {
+            'X-RateLimit-Limit': ipRateLimitResult.dailyLimit.toString(),
+            'X-RateLimit-Remaining': ipRateLimitResult.remaining.toString(),
+            'X-RateLimit-Reset': Math.floor(ipRateLimitResult.resetTime.getTime() / 1000).toString(),
+            'X-RateLimit-Tier': 'free'
+          }
+        })
+      }
+
+      // Check burst rate limit
+      const burstLimitResult = await checkIPBurstLimit(userIP)
+      
+      if (!burstLimitResult.allowed) {
+        await logIPRequest({
+          ipAddress: userIP,
+          roomUrl,
+          success: false,
+          responseTimeMs: Date.now() - startTime,
+          errorMessage: 'Burst rate limit exceeded'
+        })
+
+        return NextResponse.json({
+          success: false,
+          error: 'Rate limit exceeded',
+          message: 'Too many requests per minute. Please slow down.',
+          resetTime: burstLimitResult.resetTime.toISOString()
+        }, { status: 429 })
+      }
     }
 
     // TODO: Implement actual signature generation logic
     // For now, return EulerStream-compatible response format
     const responseTime = Date.now() - startTime
     
-    // Log request
-    await usageLogOps.logRequest({
-      userId: authContext?.user?.id,
-      apiKeyId: authContext?.apiKey?.id,
-      roomUrl,
-      success: true,
-      responseTimeMs: responseTime
-    })
-
-    // Update usage quota if authenticated
+    // Log request based on tier
     if (authContext) {
+      // TIER 2: API KEY USER
+      await usageLogOps.logRequest({
+        userId: authContext.user.id,
+        apiKeyId: authContext.apiKey?.id,
+        roomUrl,
+        success: true,
+        responseTimeMs: responseTime
+      })
+
+      // Update usage quota
       const supabase = createServerSupabaseClient()
       await updateUsageQuota(authContext.user.id, supabase)
+    } else {
+      // TIER 1: ANONYMOUS USER
+      await logIPRequest({
+        ipAddress: userIP,
+        roomUrl,
+        success: true,
+        responseTimeMs: responseTime
+      })
+
+      // Increment IP usage count
+      await incrementIPUsage(userIP)
     }
 
     // EulerStream-compatible response format
@@ -114,14 +193,25 @@ export async function POST(request: NextRequest) {
     console.error('EulerStream compatibility endpoint error:', error)
     const responseTime = Date.now() - startTime
     
-    await usageLogOps.logRequest({
-      userId: authContext?.user?.id,
-      apiKeyId: authContext?.apiKey?.id,
-      roomUrl,
-      success: false,
-      responseTimeMs: responseTime,
-      errorMessage: error instanceof Error ? error.message : 'Unknown error'
-    })
+    // Log error based on tier
+    if (authContext) {
+      await usageLogOps.logRequest({
+        userId: authContext.user.id,
+        apiKeyId: authContext.apiKey?.id,
+        roomUrl,
+        success: false,
+        responseTimeMs: responseTime,
+        errorMessage: error instanceof Error ? error.message : 'Unknown error'
+      })
+    } else {
+      await logIPRequest({
+        ipAddress: userIP,
+        roomUrl,
+        success: false,
+        responseTimeMs: responseTime,
+        errorMessage: error instanceof Error ? error.message : 'Unknown error'
+      })
+    }
 
     return NextResponse.json(
       {
