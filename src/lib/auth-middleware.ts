@@ -37,67 +37,74 @@ export async function authenticateRequest(request: NextRequest): Promise<{
   try {
     const supabase = createServerSupabaseClient()
 
-    // Check for API key in Authorization header
+    // Check for API key in Authorization header or X-API-Key header
     const authHeader = request.headers.get('authorization')
+    const apiKeyHeader = request.headers.get('x-api-key')
+    
+    let apiKey: string | null = null
+    
     if (authHeader && authHeader.startsWith('Bearer ')) {
-      const apiKey = authHeader.substring(7)
+      apiKey = authHeader.substring(7)
+    } else if (apiKeyHeader) {
+      apiKey = apiKeyHeader
+    }
+    
+    if (apiKey) {
+      // This is an API key (support both sk_ prefixed and raw format)
+      const keyHash = createHash('sha256').update(apiKey).digest('hex')
       
-      if (apiKey.startsWith('sk_')) {
-        // This is an API key
-        const keyHash = createHash('sha256').update(apiKey).digest('hex')
-        
-        const { data: apiKeyData, error: keyError } = await supabase
-          .from('api_keys')
-          .select(`
+      const { data: apiKeyData, error: keyError } = await supabase
+        .from('api_keys')
+        .select(`
+          id,
+          user_id,
+          name,
+          users!inner (
             id,
-            user_id,
-            name,
-            users!inner (
-              id,
-              email,
-              tier,
-              is_active
-            )
-          `)
-          .eq('key_hash', keyHash)
-          .eq('is_active', true)
-          .single()
+            email,
+            tier,
+            is_active
+          )
+        `)
+        .eq('key_hash', keyHash)
+        .eq('is_active', true)
+        .single()
 
-        if (keyError || !apiKeyData) {
-          return {
-            success: false,
-            error: {
-              type: ErrorType.AUTHENTICATION_ERROR,
-              message: 'Invalid API key',
-              code: 'INVALID_API_KEY',
-              timestamp: new Date()
-            }
-          }
-        }
-
-        const user = Array.isArray(apiKeyData.users) ? apiKeyData.users[0] : apiKeyData.users
-
-        if (!user.is_active) {
-          return {
-            success: false,
-            error: {
-              type: ErrorType.AUTHORIZATION_ERROR,
-              message: 'User account is inactive',
-              code: 'INACTIVE_USER',
-              timestamp: new Date()
-            }
-          }
-        }
-
-        // Update last_used timestamp for the API key
-        await supabase
-          .from('api_keys')
-          .update({ last_used: new Date().toISOString() })
-          .eq('id', apiKeyData.id)
-
+      if (keyError || !apiKeyData) {
         return {
-          success: true,
-          context: {
+          success: false,
+          error: {
+            type: ErrorType.AUTHENTICATION_ERROR,
+            message: 'Invalid API key',
+            code: 'INVALID_API_KEY',
+            timestamp: new Date()
+          }
+        }
+      }
+
+      const user = Array.isArray(apiKeyData.users) ? apiKeyData.users[0] : apiKeyData.users
+
+      if (!user.is_active) {
+        return {
+          success: false,
+          error: {
+            type: ErrorType.AUTHORIZATION_ERROR,
+            message: 'User account is inactive',
+            code: 'INACTIVE_USER',
+            timestamp: new Date()
+          }
+        }
+      }
+
+      // Update last_used timestamp for the API key
+      await supabase
+        .from('api_keys')
+        .update({ last_used: new Date().toISOString() })
+        .eq('id', apiKeyData.id)
+
+      return {
+        success: true,
+        context: {
             user: {
               id: user.id,
               email: user.email,
