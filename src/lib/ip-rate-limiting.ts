@@ -73,6 +73,18 @@ export async function checkIPRateLimit(ipAddress: string): Promise<IPRateLimitRe
 
     if (error && error.code !== 'PGRST116') { // PGRST116 = no rows found
       console.error('Failed to check IP rate limit:', error)
+      // If database tables don't exist yet, allow requests (graceful degradation)
+      if (error.message?.includes('relation') && error.message?.includes('does not exist')) {
+        console.warn('IP tracking tables not found - allowing request (migration needed)')
+        return {
+          allowed: true,
+          remaining: IP_RATE_LIMITS.DAILY_LIMIT,
+          resetTime: getTomorrowMidnight(),
+          currentUsage: 0,
+          dailyLimit: IP_RATE_LIMITS.DAILY_LIMIT
+        }
+      }
+      
       return {
         allowed: false,
         remaining: 0,
@@ -133,6 +145,11 @@ export async function incrementIPUsage(ipAddress: string): Promise<boolean> {
 
     if (error) {
       console.error('Failed to increment IP usage:', error)
+      // If tables don't exist, just log and continue (graceful degradation)
+      if (error.message?.includes('relation') && error.message?.includes('does not exist')) {
+        console.warn('IP tracking tables not found - skipping increment (migration needed)')
+        return true
+      }
       return false
     }
 
@@ -169,6 +186,10 @@ export async function logIPRequest(params: {
 
     if (error) {
       console.error('Failed to log IP request:', error)
+      // If tables don't exist, just log warning (graceful degradation)
+      if (error.message?.includes('relation') && error.message?.includes('does not exist')) {
+        console.warn('IP tracking tables not found - skipping log (migration needed)')
+      }
     }
   } catch (error) {
     console.error('IP request logging error:', error)
