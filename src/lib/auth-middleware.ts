@@ -41,19 +41,30 @@ export async function authenticateRequest(request: NextRequest): Promise<{
     const authHeader = request.headers.get('authorization')
     const apiKeyHeader = request.headers.get('x-api-key')
     
+    console.log('🔍 DEBUG AUTH: Headers received')
+    console.log('  - Authorization header:', authHeader ? `Bearer ${authHeader.substring(7, 15)}...` : 'None')
+    console.log('  - X-API-Key header:', apiKeyHeader ? `${apiKeyHeader.substring(0, 8)}...` : 'None')
+    
     let apiKey: string | null = null
     
     if (authHeader && authHeader.startsWith('Bearer ')) {
       apiKey = authHeader.substring(7)
+      console.log('  - Using Authorization Bearer token')
     } else if (apiKeyHeader) {
       apiKey = apiKeyHeader
+      console.log('  - Using X-API-Key header')
     }
     
     if (apiKey) {
+      console.log('🔑 DEBUG AUTH: Processing API key')
+      console.log('  - API key received:', `${apiKey.substring(0, 8)}...`)
+      
       // This is an API key (support both sk_ prefixed and raw format)
       const keyHash = createHash('sha256').update(apiKey).digest('hex')
+      console.log('  - Generated hash:', `${keyHash.substring(0, 16)}...`)
       
       // First get the API key
+      console.log('🗄️ DEBUG AUTH: Querying api_keys table')
       const { data: apiKeyData, error: keyError } = await supabase
         .from('api_keys')
         .select('id, user_id, name')
@@ -61,7 +72,18 @@ export async function authenticateRequest(request: NextRequest): Promise<{
         .eq('is_active', true)
         .single()
 
+      console.log('  - Database query result:')
+      console.log('    - Error:', keyError?.message || 'None')
+      console.log('    - Data found:', apiKeyData ? 'Yes' : 'No')
+      if (apiKeyData) {
+        console.log('    - API key ID:', apiKeyData.id)
+        console.log('    - User ID:', apiKeyData.user_id)
+        console.log('    - Name:', apiKeyData.name)
+      }
+
       if (keyError || !apiKeyData) {
+        console.log('❌ DEBUG AUTH: API key authentication FAILED')
+        console.log('  - Reason:', keyError?.message || 'No matching API key found')
         return {
           success: false,
           error: {
@@ -74,13 +96,28 @@ export async function authenticateRequest(request: NextRequest): Promise<{
       }
 
       // Now get the user data
+      console.log('👤 DEBUG AUTH: Querying users table')
+      console.log('  - Looking for user ID:', apiKeyData.user_id)
+      
       const { data: userData, error: userError } = await supabase
         .from('users')
         .select('id, email, tier, is_active')
         .eq('id', apiKeyData.user_id)
         .single()
 
+      console.log('  - User query result:')
+      console.log('    - Error:', userError?.message || 'None')
+      console.log('    - Data found:', userData ? 'Yes' : 'No')
+      if (userData) {
+        console.log('    - User ID:', userData.id)
+        console.log('    - Email:', userData.email)
+        console.log('    - Tier:', userData.tier)
+        console.log('    - Active:', userData.is_active)
+      }
+
       if (userError || !userData) {
+        console.log('❌ DEBUG AUTH: User lookup FAILED')
+        console.log('  - Reason:', userError?.message || 'No user found')
         return {
           success: false,
           error: {
@@ -93,6 +130,7 @@ export async function authenticateRequest(request: NextRequest): Promise<{
       }
 
       if (!userData.is_active) {
+        console.log('❌ DEBUG AUTH: User is INACTIVE')
         return {
           success: false,
           error: {
@@ -105,10 +143,15 @@ export async function authenticateRequest(request: NextRequest): Promise<{
       }
 
       // Update last_used timestamp for the API key
+      console.log('📝 DEBUG AUTH: Updating API key last_used timestamp')
       await supabase
         .from('api_keys')
         .update({ last_used: new Date().toISOString() })
         .eq('id', apiKeyData.id)
+
+      console.log('✅ DEBUG AUTH: Authentication SUCCESS!')
+      console.log('  - User tier:', userData.tier)
+      console.log('  - Auth method: api_key')
 
       return {
         success: true,
@@ -130,10 +173,17 @@ export async function authenticateRequest(request: NextRequest): Promise<{
       }
     }
 
+    console.log('🔍 DEBUG AUTH: No API key found, checking session-based auth')
+    
     // Check for session-based authentication
     const { data: { user }, error: authError } = await supabase.auth.getUser()
 
+    console.log('  - Session auth result:')
+    console.log('    - Error:', authError?.message || 'None')
+    console.log('    - User found:', user ? 'Yes' : 'No')
+
     if (authError || !user) {
+      console.log('❌ DEBUG AUTH: No authentication found (API key or session)')
       return {
         success: false,
         error: {
