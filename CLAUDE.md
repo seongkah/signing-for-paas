@@ -34,6 +34,143 @@ curl -X POST "https://signing-for-paas.vercel.app/api/eulerstream" \
   -d '{"url": "https://www.tiktok.com/@testuser/live"}'
 ```
 
+## Database & Security Architecture
+
+### Row Level Security (RLS) Implementation
+**✅ CRITICAL**: This project uses **proper RLS configuration** with service role authentication for system operations.
+
+#### **Service Role vs Anonymous Key Usage**
+```typescript
+// ❌ WRONG - Don't use for system operations
+import { createServerSupabaseClient } from './supabase-server'
+const supabase = createServerSupabaseClient() // Uses anon key + cookies
+
+// ✅ CORRECT - Use for system operations that bypass RLS
+import { createServiceSupabaseClient } from './supabase-server'  
+const supabase = createServiceSupabaseClient() // Uses service role key
+```
+
+#### **When to Use Which Client:**
+
+**🔧 Use `createServiceSupabaseClient()` for:**
+- **Authentication middleware** (`src/lib/auth-middleware.ts`)
+- **API key lookups and validation**
+- **System logging** (IP tracking, signature logs, usage logs)
+- **Rate limiting operations**
+- **Admin functions and analytics**
+- **Any operation that needs to bypass user-level RLS**
+
+**👤 Use `createServerSupabaseClient()` for:**
+- **User session management** (reading auth cookies)
+- **User-specific data access** (respecting RLS policies)
+- **Frontend data fetching** (user dashboard, profile)
+
+#### **RLS Policies Configuration**
+All tables have proper RLS policies:
+```sql
+-- Example policy structure for all tables
+CREATE POLICY "Service role can manage all records" 
+ON table_name FOR ALL 
+TO public 
+USING (auth.role() = 'service_role');
+
+-- User-specific policies for authenticated users
+CREATE POLICY "Users can manage own records" 
+ON table_name FOR ALL 
+TO public 
+USING (user_id = auth.uid());
+```
+
+#### **Critical Fix Applied**
+**Problem**: Authentication was failing because middleware used `createServerSupabaseClient()` (anon key) instead of `createServiceSupabaseClient()` (service role) for API key lookups.
+
+**Solution**: 
+1. ✅ **Enable RLS** on all tables (`users`, `api_keys`, `usage_logs`, `ip_usage_logs`, `ip_usage_tracking`, `signature_logs`)
+2. ✅ **Add service role policies** allowing `auth.role() = 'service_role'` full access
+3. ✅ **Update all system operations** to use `createServiceSupabaseClient()`
+4. ✅ **Keep session operations** using `createServerSupabaseClient()` for cookie access
+
+#### **Files Updated for RLS Compliance**
+```typescript
+// src/lib/auth-middleware.ts
+- OLD: const supabase = createServerSupabaseClient()
++ NEW: const supabase = createServiceSupabaseClient() // For API key lookups
++ NEW: const sessionSupabase = createServerSupabaseClient() // For session auth
+
+// src/lib/ip-rate-limiting.ts  
+- OLD: const supabase = createServerSupabaseClient()
++ NEW: const supabase = createServiceSupabaseClient() // For all IP operations
+
+// src/lib/signature-logging.ts
++ NEW: const supabase = createServiceSupabaseClient() // For comprehensive logging
+
+// src/app/api/signature/route.ts
++ NEW: logSignatureRequest() calls for all requests (success/error)
+
+// src/app/api/eulerstream/route.ts
++ NEW: logSignatureRequest() calls for all requests (success/error)
+```
+
+#### **Database Tables with RLS Enabled**
+- ✅ **users**: User accounts and profiles
+- ✅ **api_keys**: API key management and authentication
+- ✅ **usage_logs**: User-specific request logging  
+- ✅ **ip_usage_logs**: Anonymous IP request logging
+- ✅ **ip_usage_tracking**: IP-based rate limiting counters
+- ✅ **signature_logs**: Comprehensive request tracking (NEW)
+- ✅ **quota_usage**: Daily usage quotas and limits
+
+### Comprehensive Logging System
+**NEW FEATURE**: Complete request tracking across all tiers and endpoints.
+
+#### **signature_logs Table Schema**
+```sql
+CREATE TABLE signature_logs (
+    id UUID PRIMARY KEY,
+    request_id VARCHAR(50),           -- Unique correlation ID
+    endpoint VARCHAR(50),             -- '/api/signature', '/api/eulerstream'
+    
+    -- Client Info  
+    ip_address INET,                  -- Real IP via Vercel headers
+    user_agent TEXT,                  -- Browser/client identification
+    country_code VARCHAR(3),          -- Geographic location
+    region VARCHAR(50),               -- Geographic region
+    
+    -- Authentication & Tier
+    tier VARCHAR(20),                 -- 'free', 'api_key'
+    authentication_method VARCHAR(20), -- 'ip_based', 'api_key', 'session'
+    user_id UUID,                     -- NULL for anonymous
+    api_key_id UUID,                  -- NULL for non-API key
+    
+    -- Request Details
+    room_url TEXT,                    -- TikTok room URL
+    request_format VARCHAR(20),       -- 'modern', 'eulerstream', 'legacy'
+    success BOOLEAN,                  -- Request success/failure
+    response_time_ms INTEGER,         -- Performance tracking
+    error_type VARCHAR(50),           -- Error classification
+    error_message TEXT,               -- Detailed error info
+    
+    -- Rate Limiting Context
+    rate_limit_hit BOOLEAN,           -- Was request rate limited
+    daily_usage_count INTEGER,        -- Usage at time of request
+    daily_limit INTEGER,              -- Limit at time of request
+    
+    -- Signature Details
+    signature_type VARCHAR(20),       -- 'mock', 'real', 'cached'
+    signature_length INTEGER,         -- Generated signature size
+    
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+```
+
+#### **Analytics & Monitoring**
+- **Complete visibility**: Every signature request logged regardless of tier
+- **Business intelligence**: Revenue tracking (API key vs free usage)
+- **Performance monitoring**: Response times, error patterns, peak usage
+- **Geographic insights**: User distribution by country/region
+- **Security analytics**: Rate limit patterns, abuse detection
+- **Capacity planning**: Usage trends and scaling requirements
+
 ## Commands
 
 ### Development
