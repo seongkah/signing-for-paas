@@ -45,10 +45,13 @@ async function handleSignatureGeneration(request: NextRequest, context: ApiConte
     userIP = extractIPAddress(request)
 
     // Authenticate request (optional - determines tier)
+    console.log('🔍 SIGNATURE: Testing authentication for API key')
     const authResult = await authenticateRequest(request)
+    console.log('🔍 SIGNATURE: Auth result:', authResult.success, authResult.error?.message)
     
     if (authResult.success && authResult.context) {
       // TIER 2: API KEY USER (Unlimited)
+      console.log('🔍 SIGNATURE: Using authenticated context - tier:', authResult.context.user?.tier)
       authContext = authResult.context
       context.userId = authContext.user.id;
       context.apiKeyId = authContext.apiKey?.id;

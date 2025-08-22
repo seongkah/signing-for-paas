@@ -63,8 +63,7 @@ export async function POST(request: NextRequest) {
         email: 'test@example.com',
         tier: 'api_key',
         is_active: true,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
+        created_at: new Date().toISOString()
       })
       .select()
       .single()
@@ -90,8 +89,7 @@ export async function POST(request: NextRequest) {
         key_hash: keyHash,
         name: 'Test API Key for Authentication Debug',
         is_active: true,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
+        created_at: new Date().toISOString()
       })
       .select()
       .single()
