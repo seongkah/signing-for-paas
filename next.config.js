@@ -1,7 +1,23 @@
+const path = require('path')
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
     domains: ['localhost'],
+  },
+  experimental: {
+    typedRoutes: true,
+  },
+  webpack: (config) => {
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      '@': path.join(__dirname, 'src'),
+      '@/components': path.join(__dirname, 'src/components'),
+      '@/lib': path.join(__dirname, 'src/lib'),
+      '@/types': path.join(__dirname, 'src/types'),
+      '@/app': path.join(__dirname, 'src/app'),
+    }
+    return config
   },
   env: {
     NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
