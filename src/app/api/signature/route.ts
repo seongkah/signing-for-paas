@@ -4,6 +4,7 @@ import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { usageLogOps } from '@/lib/database-operations'
 import { withErrorHandling, ApiContext } from '@/lib/api-wrapper'
 import { createValidationError, createAuthenticationError, createRateLimitError, createSignatureError } from '@/lib/error-handler'
+import { logSignatureRequest } from '@/lib/signature-logging'
 import { 
   parseCompatibleRequest, 
   formatCompatibleResponse, 
@@ -177,6 +178,19 @@ async function handleSignatureGeneration(request: NextRequest, context: ApiConte
       await incrementIPUsage(userIP)
     }
 
+    // COMPREHENSIVE LOGGING: Log to signature_logs table for all requests
+    await logSignatureRequest({
+      request,
+      endpoint: '/api/signature',
+      roomUrl,
+      requestFormat: format as 'modern' | 'eulerstream' | 'legacy',
+      authContext,
+      success: signatureResult.success,
+      responseTimeMs: responseTime,
+      signatureType: 'mock', // TODO: Update when real signature is implemented
+      signatureLength: signatureResult.data?.signature?.length || 0
+    })
+
     // Format response according to detected format
     const response = formatCompatibleResponse(
       { ...signatureResult.data, roomUrl },
@@ -259,6 +273,23 @@ async function handleSignatureGeneration(request: NextRequest, context: ApiConte
       }
     } catch (logError) {
       console.error('Failed to log error usage:', logError);
+    }
+
+    // COMPREHENSIVE ERROR LOGGING: Log failed requests to signature_logs table
+    try {
+      await logSignatureRequest({
+        request,
+        endpoint: '/api/signature',
+        roomUrl,
+        requestFormat: (format || 'modern') as 'modern' | 'eulerstream' | 'legacy',
+        authContext,
+        success: false,
+        responseTimeMs: responseTime,
+        errorType: error instanceof Error ? error.constructor.name : 'UNKNOWN_ERROR',
+        errorMessage: error instanceof Error ? error.message : 'Unknown error occurred'
+      })
+    } catch (logError) {
+      console.error('Failed to log error to signature_logs:', logError);
     }
 
     // For compatibility, we need to handle errors in the expected format

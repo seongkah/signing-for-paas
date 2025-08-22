@@ -3,6 +3,7 @@ import { authenticateRequest, checkRateLimit, updateUsageQuota } from '@/lib/aut
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { usageLogOps } from '@/lib/database-operations'
 import { ErrorType } from '@/types'
+import { logSignatureRequest } from '@/lib/signature-logging'
 import {
   extractIPAddress,
   checkIPRateLimit,
@@ -168,6 +169,19 @@ export async function POST(request: NextRequest) {
       await incrementIPUsage(userIP)
     }
 
+    // COMPREHENSIVE LOGGING: Log to signature_logs table for all requests
+    await logSignatureRequest({
+      request,
+      endpoint: '/api/eulerstream',
+      roomUrl,
+      requestFormat: 'eulerstream',
+      authContext,
+      success: true,
+      responseTimeMs: responseTime,
+      signatureType: 'mock', // TODO: Update when real signature is implemented
+      signatureLength: 'placeholder_signature'.length
+    })
+
     // EulerStream-compatible response format
     return NextResponse.json({
       success: true,
@@ -211,6 +225,23 @@ export async function POST(request: NextRequest) {
         responseTimeMs: responseTime,
         errorMessage: error instanceof Error ? error.message : 'Unknown error'
       })
+    }
+
+    // COMPREHENSIVE ERROR LOGGING: Log failed requests to signature_logs table
+    try {
+      await logSignatureRequest({
+        request,
+        endpoint: '/api/eulerstream',
+        roomUrl,
+        requestFormat: 'eulerstream',
+        authContext,
+        success: false,
+        responseTimeMs: responseTime,
+        errorType: error instanceof Error ? error.constructor.name : 'UNKNOWN_ERROR',
+        errorMessage: error instanceof Error ? error.message : 'Unknown error occurred'
+      })
+    } catch (logError) {
+      console.error('Failed to log error to signature_logs:', logError);
     }
 
     return NextResponse.json(
