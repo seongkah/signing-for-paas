@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server'
-import { createServerSupabaseClient } from './supabase-server'
+import { createServiceSupabaseClient } from './supabase-server'
 
 /**
  * IP-based rate limiting for anonymous users (free tier)
@@ -60,7 +60,8 @@ export function extractIPAddress(request: NextRequest): string {
  */
 export async function checkIPRateLimit(ipAddress: string): Promise<IPRateLimitResult> {
   try {
-    const supabase = createServerSupabaseClient()
+    // Use service role for system operations on IP tracking
+    const supabase = createServiceSupabaseClient()
     const today = new Date().toISOString().split('T')[0] // YYYY-MM-DD format
     
     // Get current usage for this IP today
@@ -133,7 +134,8 @@ export async function checkIPRateLimit(ipAddress: string): Promise<IPRateLimitRe
  */
 export async function incrementIPUsage(ipAddress: string): Promise<boolean> {
   try {
-    const supabase = createServerSupabaseClient()
+    // Use service role for system operations on IP tracking
+    const supabase = createServiceSupabaseClient()
     const today = new Date().toISOString().split('T')[0]
 
     // Use RPC function for atomic increment
@@ -171,7 +173,8 @@ export async function logIPRequest(params: {
   errorMessage?: string
 }): Promise<void> {
   try {
-    const supabase = createServerSupabaseClient()
+    // Use service role for system operations on IP logs
+    const supabase = createServiceSupabaseClient()
     
     const { error } = await supabase
       .from('ip_usage_logs')
@@ -205,7 +208,8 @@ export async function checkIPBurstLimit(ipAddress: string): Promise<{
   resetTime: Date
 }> {
   try {
-    const supabase = createServerSupabaseClient()
+    // Use service role for system operations on IP burst checking
+    const supabase = createServiceSupabaseClient()
     const oneMinuteAgo = new Date(Date.now() - IP_RATE_LIMITS.WINDOW_SIZE)
 
     // Count requests in the last minute
