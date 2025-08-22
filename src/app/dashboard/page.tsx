@@ -315,16 +315,16 @@ export default function DashboardPage() {
                     <div>
                       <h4 className="font-semibold">API Endpoint</h4>
                       <code className="bg-gray-100 px-2 py-1 rounded text-sm">
-                        POST {typeof window !== 'undefined' ? window.location.origin : ''}/api/signature
+                        POST https://signing-for-paas.vercel.app/api/signature
                       </code>
                     </div>
                     <div>
                       <h4 className="font-semibold">Example Request</h4>
                       <pre className="bg-gray-100 p-4 rounded text-sm overflow-x-auto">
-{`curl -X POST ${typeof window !== 'undefined' ? window.location.origin : 'https://your-domain.com'}/api/signature \\
+{`curl -X POST https://signing-for-paas.vercel.app/api/signature \\
   -H "Content-Type: application/json" \\
-  -H "Authorization: Bearer YOUR_API_KEY" \\
-  -d '{"roomUrl": "https://www.tiktok.com/@username/live"}'`}
+  -H "X-API-Key: YOUR_API_KEY" \\
+  -d '{"url": "https://www.tiktok.com/@username/live"}'`}
                       </pre>
                     </div>
                   </CardContent>

@@ -42,7 +42,7 @@ const connection = new TikTokLiveConnector('@username', {
 const connection = new TikTokLiveConnector('@username', {
     signProvider: '${baseUrl}/api/eulerstream',
     signProviderHeaders: {
-        'Authorization': 'Bearer YOUR_API_KEY',
+        'X-API-Key': 'YOUR_API_KEY',
         'Content-Type': 'application/json'
     }
 });`,
@@ -125,7 +125,7 @@ connection.on('gift', data => {
         description: 'API key authentication for unlimited access',
         how_to_get: `Visit ${baseUrl}/dashboard to generate API keys`,
         usage: {
-          header: 'Authorization: Bearer YOUR_API_KEY',
+          header: 'X-API-Key: YOUR_API_KEY',
           benefits: ['Unlimited requests', 'Priority processing', 'Usage analytics']
         }
       }
@@ -331,7 +331,7 @@ const connection = new TikTokLiveConnector('${username || '@username'}', {
 const connection = new TikTokLiveConnector('${username || '@username'}', {
     signProvider: '${baseUrl}${endpoint || '/api/eulerstream'}',
     signProviderHeaders: {
-        'Authorization': 'Bearer YOUR_API_KEY',
+        'X-API-Key': 'YOUR_API_KEY',
         'Content-Type': 'application/json'
     }
 });` : null,
@@ -341,7 +341,7 @@ const connection = new TikTokLiveConnector('${username || '@username'}', {
 const connection = new TikTokLiveConnector('${username || '@username'}', {
     signProvider: '${baseUrl}${endpoint || '/api/eulerstream'}'${useAuth ? `,
     signProviderHeaders: {
-        'Authorization': 'Bearer YOUR_API_KEY',
+        'X-API-Key': 'YOUR_API_KEY',
         'Content-Type': 'application/json'
     }` : ''}
 });
