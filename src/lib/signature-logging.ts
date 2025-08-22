@@ -111,8 +111,6 @@ export async function logSignatureRequest(params: SignatureLogParams): Promise<v
     if (error) {
       console.error('Failed to log signature request:', error)
       // Don't throw - logging failures shouldn't break the main request
-    } else {
-      console.log(`✅ Signature request logged: ${requestId} [${tier}] ${params.endpoint}`)
     }
     
   } catch (error) {
