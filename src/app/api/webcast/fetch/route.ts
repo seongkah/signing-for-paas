@@ -30,6 +30,61 @@ try {
 }
 
 /**
+ * Create a minimal valid protobuf binary response
+ * This creates a basic protobuf structure that TikTok Live Connector can parse
+ */
+function createMinimalProtobufResponse(protoMessage: any): Buffer {
+  // Create a minimal protobuf message with required fields
+  // This is a simplified binary encoding that should pass basic protobuf parsing
+  
+  const parts: Buffer[] = []
+  
+  // Field 2: cursor (string) - tag = (2 << 3) | 2 = 18
+  if (protoMessage.cursor) {
+    const cursorBytes = Buffer.from(protoMessage.cursor, 'utf8')
+    parts.push(Buffer.from([18, cursorBytes.length]), cursorBytes)
+  }
+  
+  // Field 3: fetchInterval (int64) - tag = (3 << 3) | 0 = 24  
+  if (protoMessage.fetchInterval) {
+    const interval = parseInt(protoMessage.fetchInterval)
+    parts.push(Buffer.from([24]), encodeVarint(interval))
+  }
+  
+  // Field 4: now (int64) - tag = (4 << 3) | 0 = 32
+  if (protoMessage.now) {
+    const now = parseInt(protoMessage.now)
+    parts.push(Buffer.from([32]), encodeVarint(now))
+  }
+  
+  // Field 10: wsUrl (string) - tag = (10 << 3) | 2 = 82
+  if (protoMessage.wsUrl) {
+    const wsUrlBytes = Buffer.from(protoMessage.wsUrl, 'utf8')
+    parts.push(Buffer.from([82, wsUrlBytes.length]), wsUrlBytes)
+  }
+  
+  // Field 11: isFirst (bool) - tag = (11 << 3) | 0 = 88
+  if (protoMessage.isFirst) {
+    parts.push(Buffer.from([88, 1]))
+  }
+  
+  return Buffer.concat(parts)
+}
+
+/**
+ * Encode a number as varint (variable-length integer)
+ */
+function encodeVarint(value: number): Buffer {
+  const bytes: number[] = []
+  while (value >= 0x80) {
+    bytes.push((value & 0xFF) | 0x80)
+    value >>>= 7
+  }
+  bytes.push(value & 0xFF)
+  return Buffer.from(bytes)
+}
+
+/**
  * /api/webcast/fetch endpoint - EulerStream Compatible
  * This is the main endpoint TikTok Live Connector calls for signature generation
  */
@@ -212,7 +267,7 @@ export async function GET(request: NextRequest) {
     
     console.log('🔧 Creating protobuf response:', JSON.stringify(protoMessage, null, 2))
     
-    // Encode using TikTok Live Connector's protobuf encoder
+    // Encode using TikTok Live Connector's protobuf encoder or create minimal protobuf
     let buffer: Buffer
     
     try {
@@ -223,14 +278,14 @@ export async function GET(request: NextRequest) {
         buffer = Buffer.from(uint8Array)
         console.log('✅ Protobuf encoding successful, buffer size:', buffer.length)
       } else {
-        // Fallback to JSON if protobuf modules not loaded
-        console.warn('⚠️  Protobuf modules not available, falling back to JSON')
-        buffer = Buffer.from(JSON.stringify(protoMessage))
+        // Create minimal valid protobuf binary instead of JSON fallback
+        console.warn('⚠️  Protobuf modules not available, creating minimal protobuf binary')
+        buffer = createMinimalProtobufResponse(protoMessage)
       }
     } catch (protobufError) {
       console.error('❌ Protobuf encoding failed:', protobufError)
-      // Fallback to JSON
-      buffer = Buffer.from(JSON.stringify(protoMessage))
+      // Create minimal protobuf binary
+      buffer = createMinimalProtobufResponse(protoMessage)
     }
     
     return new NextResponse(buffer as any, {
