@@ -1,32 +1,37 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 
-// Import TikTok Live Connector's protobuf encoder
+// Import TikTok Live Connector's protobuf encoder directly from the package
 let ProtoMessageFetchResult: any
-let BinaryWriter: any
+let createBaseProtoMessageFetchResult: any
 
 try {
+  // Import TikTok Live Connector's protobuf schema directly
   const tikTokSchema = require('tiktok-live-connector/dist/types/tiktok-schema.js')
-  // Try different possible paths for the BinaryWriter
-  let wireModule
-  try {
-    wireModule = require('@bufbuild/protobuf/dist/cjs/wire/binary-encoding.js')
-  } catch {
-    try {
-      wireModule = require('@bufbuild/protobuf/dist/wire/binary-encoding.js')
-    } catch {
-      wireModule = require('@bufbuild/protobuf')
-    }
-  }
-  
   ProtoMessageFetchResult = tikTokSchema.ProtoMessageFetchResult
-  BinaryWriter = wireModule.BinaryWriter
   
-  console.log('✅ TikTok protobuf modules loaded successfully')
+  // Get the base message creator function
+  createBaseProtoMessageFetchResult = () => ({
+    messages: [],
+    cursor: "",
+    fetchInterval: "0",
+    now: "0",
+    internalExt: "",
+    fetchType: 0,
+    wsParams: {},
+    heartBeatDuration: "0",
+    needsAck: false,
+    wsUrl: "",
+    isFirst: false,
+    historyCommentCursor: "",
+    historyNoMore: false,
+  })
+  
+  console.log('✅ TikTok Live Connector protobuf schema loaded successfully')
 } catch (error) {
-  console.error('❌ Failed to load TikTok protobuf modules:', error)
+  console.error('❌ Failed to load TikTok Live Connector schema:', error)
   ProtoMessageFetchResult = null
-  BinaryWriter = null
+  createBaseProtoMessageFetchResult = null
 }
 
 /**
@@ -267,24 +272,55 @@ export async function GET(request: NextRequest) {
     
     console.log('🔧 Creating protobuf response:', JSON.stringify(protoMessage, null, 2))
     
-    // Encode using TikTok Live Connector's protobuf encoder or create minimal protobuf
+    // Encode using TikTok Live Connector's native protobuf encoder
     let buffer: Buffer
     
     try {
-      if (ProtoMessageFetchResult && BinaryWriter) {
-        const writer = new BinaryWriter()
-        ProtoMessageFetchResult.encode(protoMessage, writer)
-        const uint8Array = writer.finish()
-        buffer = Buffer.from(uint8Array)
-        console.log('✅ Protobuf encoding successful, buffer size:', buffer.length)
+      if (ProtoMessageFetchResult && createBaseProtoMessageFetchResult) {
+        // Use TikTok Live Connector's exact schema structure
+        const baseMessage = createBaseProtoMessageFetchResult()
+        const fullMessage = {
+          ...baseMessage,
+          cursor: protoMessage.cursor || '0',
+          fetchInterval: protoMessage.fetchInterval || '1000',
+          now: protoMessage.now || Date.now().toString(),
+          wsUrl: protoMessage.wsUrl || 'wss://webcast.tiktok.com/webcast/im/fetch/',
+          isFirst: protoMessage.isFirst || true,
+          wsParams: protoMessage.wsParams || {},
+          heartBeatDuration: '30000'
+        }
+        
+        console.log('🔧 Using TikTok Live Connector schema:', JSON.stringify(fullMessage, null, 2))
+        
+        // Try to use TikTok Live Connector's own encoder
+        try {
+          // Create a simple Uint8Array buffer that represents a valid protobuf message
+          // This uses the exact structure TikTok Live Connector expects
+          const encoder = ProtoMessageFetchResult.encode
+          if (encoder) {
+            // Use a more direct approach - serialize to bytes
+            const messageBytes = encoder(fullMessage)
+            if (messageBytes && messageBytes.finish) {
+              buffer = Buffer.from(messageBytes.finish())
+              console.log('✅ TikTok Live Connector protobuf encoding successful, buffer size:', buffer.length)
+            } else {
+              throw new Error('Encoder did not return expected format')
+            }
+          } else {
+            throw new Error('Encoder function not available')
+          }
+        } catch (encoderError) {
+          console.warn('⚠️ TikTok Live Connector encoder failed, using minimal protobuf:', encoderError.message)
+          buffer = createMinimalProtobufResponse(fullMessage)
+        }
       } else {
-        // Create minimal valid protobuf binary instead of JSON fallback
-        console.warn('⚠️  Protobuf modules not available, creating minimal protobuf binary')
+        // Create minimal valid protobuf binary
+        console.warn('⚠️ TikTok Live Connector schema not available, creating minimal protobuf binary')
         buffer = createMinimalProtobufResponse(protoMessage)
       }
     } catch (protobufError) {
       console.error('❌ Protobuf encoding failed:', protobufError)
-      // Create minimal protobuf binary
+      // Fallback to minimal protobuf binary
       buffer = createMinimalProtobufResponse(protoMessage)
     }
     
