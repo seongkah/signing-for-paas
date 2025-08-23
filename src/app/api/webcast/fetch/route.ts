@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
+import { authenticateRequest } from '@/lib/auth-middleware'
+import { extractIPAddress, checkIPRateLimit, incrementIPUsage } from '@/lib/ip-rate-limiting'
+import { logSignatureRequest } from '@/lib/signature-logging'
 
 // Import TikTok Live Connector's protobuf encoder directly from the package
 let ProtoMessageFetchResult: any
@@ -156,21 +159,121 @@ export async function POST(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   const startTime = Date.now()
+  const requestId = Math.random().toString(36).substring(2, 15)
+  let authContext: any = null
+  let tier = 'free'  
+  let authMethod = 'ip_based'
+  
+  // Extract client IP address using proper Vercel headers
+  const userIP = extractIPAddress(request)
+  
   const url = request.nextUrl
   const headers = Object.fromEntries(request.headers.entries())
   const searchParams = Object.fromEntries(url.searchParams.entries())
   
-  console.log('🎯 EulerStream Compatible GET Request:')
+  console.log(`🎯 [${requestId}] EulerStream Compatible GET Request:`)
   console.log('   Method: GET')
   console.log('   URL:', url.toString())
+  console.log(`   IP: ${userIP}`)
   console.log('   Search Params:', searchParams)
-  console.log('   Headers:', headers)
   
-  const requestId = crypto.randomUUID()
+  // DEBUG: Log ALL request headers to understand what TikTok Live Connector is sending
+  console.log(`🔍 [${requestId}] REQUEST HEADERS DEBUG:`)
+  for (const [key, value] of Object.entries(headers)) {
+    if (key.toLowerCase().includes('api') || key.toLowerCase().includes('auth') || key.toLowerCase().includes('key')) {
+      console.log(`   🔑 ${key}: ${value}`)
+    } else {
+      console.log(`   📋 ${key}: ${value}`)
+    }
+  }
+  
+  // Check specifically for API key headers
+  const authHeader = request.headers.get('authorization')
+  const xApiKeyHeader = request.headers.get('x-api-key')
+  const apiKeyQueryParam = searchParams.apiKey
+  
+  console.log(`🔑 [${requestId}] API KEY DETECTION:`)
+  console.log(`   Authorization header: ${authHeader || 'NOT SET'}`)
+  console.log(`   X-API-Key header: ${xApiKeyHeader || 'NOT SET'}`)  
+  console.log(`   apiKey query param: ${apiKeyQueryParam || 'NOT SET'}`)
+  
   let success = false
   let errorMessage = ''
   let errorType = ''
   
+  try {
+    console.log(`🔧 [${requestId}] Starting authentication check...`)
+    
+    // Authenticate request (optional - determines tier)
+    const authResult = await authenticateRequest(request)
+    
+    console.log(`🔍 [${requestId}] Authentication result:`, {
+      success: authResult.success,
+      hasContext: !!authResult.context,
+      error: authResult.error?.message
+    })
+    
+    if (authResult.success && authResult.context) {
+      // PAID TIER: API KEY USER (Unlimited)
+      authContext = authResult.context
+      tier = authContext.user.tier === 'api_key' ? 'unlimited' : 'paid'
+      authMethod = 'api_key'
+      console.log('✅ API Key Authentication successful:', {
+        userId: authContext.user.id,
+        tier: tier,
+        apiKeyId: authContext.apiKey?.id
+      })
+    } else {
+      // FREE TIER: Anonymous User (IP-based limits)
+      console.log('ℹ️ No API key provided - using free tier with IP-based rate limiting')
+      
+      // Check IP-based rate limiting for free tier
+      const rateLimitResult = await checkIPRateLimit(userIP)
+      
+      if (!rateLimitResult.allowed) {
+        console.log('❌ Rate limit exceeded for IP:', userIP, {
+          current: rateLimitResult.currentUsage,
+          limit: rateLimitResult.dailyLimit,
+          remaining: rateLimitResult.remaining
+        })
+        
+        // Log rate limited request
+        await logSignatureRequest({
+          request,
+          endpoint: '/api/webcast/fetch',
+          roomUrl: 'rate-limited',
+          requestFormat: 'eulerstream',
+          authContext: null,
+          success: false,
+          responseTimeMs: Date.now() - startTime,
+          errorType: 'RATE_LIMIT_EXCEEDED',
+          errorMessage: 'Daily request limit exceeded for free tier',
+          rateLimitHit: true,
+          dailyUsageCount: rateLimitResult.currentUsage,
+          dailyLimit: rateLimitResult.dailyLimit
+        })
+        
+        return new NextResponse(JSON.stringify({
+          error: 'Rate limit exceeded',
+          message: 'Free tier daily limit of 100 requests exceeded',
+          limit: rateLimitResult.dailyLimit,
+          remaining: rateLimitResult.remaining,
+          resetTime: rateLimitResult.resetTime,
+          upgrade: 'Get unlimited access with an API key at https://signing-for-paas.vercel.app'
+        }), {
+          status: 429,
+          headers: { 
+            'Content-Type': 'application/json',
+            'X-RateLimit-Limit': rateLimitResult.dailyLimit.toString(),
+            'X-RateLimit-Remaining': rateLimitResult.remaining.toString(),
+            'X-RateLimit-Reset': Math.floor(rateLimitResult.resetTime.getTime() / 1000).toString()
+          }
+        })
+      }
+    }
+    
+    console.log(`🎯 Request classified as ${tier.toUpperCase()} tier using ${authMethod} authentication`)
+
   try {
     // Extract required parameters for signature generation
     const roomId = searchParams.room_id
@@ -189,12 +292,29 @@ export async function GET(request: NextRequest) {
     
     console.log('🔧 Generating signature for:', signatureUrl)
     
-    // Call our signature generation service
+    // Prepare headers for internal API call (pass through authentication)
+    const internalHeaders: Record<string, string> = {
+      'Content-Type': 'application/json',
+      'User-Agent': request.headers.get('user-agent') || 'tiktok-live-connector-webcast',
+    }
+    
+    // Pass through authentication headers if present
+    const authHeader = request.headers.get('authorization')
+    const apiKeyHeader = request.headers.get('x-api-key')
+    
+    if (authHeader) {
+      internalHeaders['authorization'] = authHeader
+      console.log('🔑 Passing through Authorization header for internal API call')
+    }
+    if (apiKeyHeader) {
+      internalHeaders['x-api-key'] = apiKeyHeader  
+      console.log('🔑 Passing through X-API-Key header for internal API call')
+    }
+
+    // Call our signature generation service with proper authentication
     const signResponse = await fetch(`${url.origin}/api/signature`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: internalHeaders,
       body: JSON.stringify({ 
         url: signatureUrl,
         // Include all the original parameters for the signature generation
@@ -214,29 +334,31 @@ export async function GET(request: NextRequest) {
       throw new Error(signData.error || 'Signature generation failed')
     }
     
-    // Log successful request
+    // Log successful request with comprehensive details
     const responseTime = Date.now() - startTime
     success = true
     
-    try {
-      const supabase = createServerSupabaseClient()
-      await supabase.from('signature_logs').insert({
-        request_id: requestId,
-        endpoint: '/api/webcast/fetch',
-        ip_address: request.headers.get('x-forwarded-for') || request.headers.get('cf-connecting-ip') || '127.0.0.1',
-        user_agent: request.headers.get('user-agent') || 'Unknown',
-        tier: 'free',
-        authentication_method: 'none',
-        room_url: signatureUrl,
-        request_format: 'GET',
-        success: true,
-        response_time_ms: responseTime,
-        signature_type: 'tiktok_live',
-        signature_length: signData.signature?.length || 0
-      })
-    } catch (logError) {
-      console.error('Failed to log to signature_logs:', logError)
+    // Increment IP usage for free tier users
+    if (!authContext) {
+      try {
+        await incrementIPUsage(userIP)
+      } catch (incrementError) {
+        console.error('Failed to increment IP usage:', incrementError)
+      }
     }
+    
+    // Log successful request using comprehensive logging
+    await logSignatureRequest({
+      request,
+      endpoint: '/api/webcast/fetch',
+      roomUrl: signatureUrl,
+      requestFormat: 'eulerstream',
+      authContext,
+      success: true,
+      responseTimeMs: responseTime,
+      signatureType: 'real',
+      signatureLength: signData.signature?.length || 0
+    })
     
     // Return EulerStream-compatible response format with proper protobuf encoding
     const responseHeaders = {
@@ -337,26 +459,24 @@ export async function GET(request: NextRequest) {
     
     console.error('🚨 EulerStream fetch error:', error)
     
-    // Log failed request
-    try {
-      const supabase = createServerSupabaseClient()
-      await supabase.from('signature_logs').insert({
-        request_id: requestId,
-        endpoint: '/api/webcast/fetch',
-        ip_address: request.headers.get('x-forwarded-for') || request.headers.get('cf-connecting-ip') || '127.0.0.1',
-        user_agent: request.headers.get('user-agent') || 'Unknown',
-        tier: 'free',
-        authentication_method: 'none',
-        room_url: searchParams.unique_id ? `https://www.tiktok.com/@${searchParams.unique_id}/live` : 'unknown',
-        request_format: 'GET',
-        success: false,
-        response_time_ms: responseTime,
-        error_type: errorType,
-        error_message: errorMessage
-      })
-    } catch (logError) {
-      console.error('Failed to log to signature_logs:', logError)
-    }
+    // Log failed request using comprehensive logging
+    const failedRoomUrl = searchParams.unique_id 
+      ? `https://www.tiktok.com/@${searchParams.unique_id}/live` 
+      : searchParams.room_id 
+        ? `https://www.tiktok.com/live/${searchParams.room_id}`
+        : 'unknown'
+    
+    await logSignatureRequest({
+      request,
+      endpoint: '/api/webcast/fetch', 
+      roomUrl: failedRoomUrl,
+      requestFormat: 'eulerstream',
+      authContext,
+      success: false,
+      responseTimeMs: responseTime,
+      errorType,
+      errorMessage
+    })
     
     // Return error response in format TikTok Live Connector can handle
     return new NextResponse(JSON.stringify({

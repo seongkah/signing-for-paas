@@ -215,6 +215,33 @@ CREATE TABLE signature_logs (
 - `./test-all.sh` - Run comprehensive legacy server test suite
 - `node src/test-live-stream-connection.js` - Test TikTok Live stream connections
 
+### TikTok Live Connector Integration
+**IMPORTANT**: This project uses TikTok Live Connector **v2.x.x** (TypeScript-based).
+
+#### **Key Changes in v2.x.x:**
+- ❌ **OLD**: `WebcastPushConnection` (deprecated in v2.x.x)
+- ✅ **NEW**: `TikTokLiveConnection` (TypeScript-based)
+- ❌ **OLD**: CommonJS `require()` support removed
+- ✅ **NEW**: ES Modules `import` only
+- ✅ **Backward compatibility**: `WebcastPushConnection` still available for legacy
+
+#### **Correct Usage Pattern:**
+```javascript
+// ✅ CORRECT - v2.x.x
+const { TikTokLiveConnection } = require('tiktok-live-connector');
+
+const connection = new TikTokLiveConnection('@username', {
+    signProvider: 'https://signing-for-paas.vercel.app/api/eulerstream',
+    signProviderHeaders: {
+        'X-API-Key': 'your-api-key-here',
+        'Content-Type': 'application/json'
+    }
+});
+
+// ❌ DEPRECATED - v1.x.x (still works but not recommended)
+const { WebcastPushConnection } = require('tiktok-live-connector');
+```
+
 ## Architecture
 
 ### Core Components

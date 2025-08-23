@@ -61,9 +61,10 @@ async function testLiveUser() {
         });
         
         connection.on('error', (error) => {
-            console.log('❌ Connection Error:', error.message);
+            console.log('❌ Connection Error:', error?.message || error || 'Unknown error');
             
-            if (error.message.includes('offline') || error.message.includes('not online')) {
+            const errorMsg = error?.message || String(error) || '';
+            if (errorMsg.includes('offline') || errorMsg.includes('not online')) {
                 console.log('');
                 console.log('ℹ️  User appears to be offline. This is normal - the EulerStream replacement is working!');
                 console.log('   The fact we got to user validation means protobuf decoding succeeded.');
@@ -81,12 +82,13 @@ async function testLiveUser() {
         await connection.connect();
         
     } catch (error) {
-        console.error('❌ DEMO FAILED:', error.message);
+        console.error('❌ DEMO FAILED:', error?.message || error || 'Unknown error');
         
-        if (error.message.includes('protobuf') || error.message.includes('decode')) {
+        const errorMsg = error?.message || String(error) || '';
+        if (errorMsg.includes('protobuf') || errorMsg.includes('decode')) {
             console.log('');
             console.log('🔧 Protobuf decoding issue detected - this means we need to improve the encoding');
-        } else if (error.message.includes('offline') || error.message.includes('not online')) {
+        } else if (errorMsg.includes('offline') || errorMsg.includes('not online')) {
             console.log('');
             console.log('✅ SUCCESS: User validation reached - EulerStream replacement working!');
             console.log('   The user is just offline, but protobuf decoding succeeded.');
