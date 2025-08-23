@@ -1,6 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 
+// Import TikTok Live Connector's protobuf encoder
+let ProtoMessageFetchResult: any
+let BinaryWriter: any
+
+try {
+  const tikTokSchema = require('tiktok-live-connector/dist/types/tiktok-schema.js')
+  const wireModule = require('@bufbuild/protobuf/dist/cjs/wire/binary-encoding.js')
+  
+  ProtoMessageFetchResult = tikTokSchema.ProtoMessageFetchResult
+  BinaryWriter = wireModule.BinaryWriter
+  
+  console.log('✅ TikTok protobuf modules loaded successfully')
+} catch (error) {
+  console.error('❌ Failed to load TikTok protobuf modules:', error)
+}
+
 /**
  * /api/webcast/fetch endpoint - EulerStream Compatible
  * This is the main endpoint TikTok Live Connector calls for signature generation
@@ -150,8 +166,7 @@ export async function GET(request: NextRequest) {
       console.error('Failed to log to signature_logs:', logError)
     }
     
-    // Return EulerStream-compatible response format
-    // TikTok Live Connector expects specific headers and binary data
+    // Return EulerStream-compatible response format with proper protobuf encoding
     const responseHeaders = {
       'x-set-tt-cookie': signData.cookies || 'mock_cookie_data',
       'x-room-id': roomId || searchParams.room_id || 'mock_room_id',
@@ -160,22 +175,51 @@ export async function GET(request: NextRequest) {
       'X-Agent-ID': 'tiktok-signing-paas'
     }
     
-    // For now, return the signature data as binary until we implement full protobuf encoding
-    // This should at least get us past the connection phase
-    const responseData = {
-      signature: signData.signature,
-      signed_url: signData.signed_url,
-      user_agent: signData.user_agent,
-      cookies: signData.cookies,
-      // Add minimal protobuf-like structure
+    // Create ProtoMessageFetchResult structure
+    const protoMessage = {
+      messages: [], // Empty messages array for initial fetch
       cursor: searchParams.cursor || '0',
       fetchInterval: '1000',
       now: Date.now().toString(),
-      wsUrl: 'wss://webcast.tiktok.com/webcast/im/fetch/',
-      wsParams: signData.signature || '',
+      internalExt: '',
+      fetchType: 0,
+      wsParams: {
+        // Include signature and other WebSocket parameters
+        signature: signData.signature || '',
+        signed_url: signData.signed_url || '',
+        user_agent: signData.user_agent || '',
+        cookies: signData.cookies || ''
+      },
+      heartBeatDuration: '30000',
+      needsAck: false,
+      wsUrl: signData.signed_url || 'wss://webcast.tiktok.com/webcast/im/fetch/',
+      isFirst: true,
+      historyCommentCursor: '',
+      historyNoMore: false
     }
     
-    const buffer = Buffer.from(JSON.stringify(responseData))
+    console.log('🔧 Creating protobuf response:', JSON.stringify(protoMessage, null, 2))
+    
+    // Encode using TikTok Live Connector's protobuf encoder
+    let buffer: Buffer
+    
+    try {
+      if (ProtoMessageFetchResult && BinaryWriter) {
+        const writer = new BinaryWriter()
+        ProtoMessageFetchResult.encode(protoMessage, writer)
+        const uint8Array = writer.finish()
+        buffer = Buffer.from(uint8Array)
+        console.log('✅ Protobuf encoding successful, buffer size:', buffer.length)
+      } else {
+        // Fallback to JSON if protobuf modules not loaded
+        console.warn('⚠️  Protobuf modules not available, falling back to JSON')
+        buffer = Buffer.from(JSON.stringify(protoMessage))
+      }
+    } catch (protobufError) {
+      console.error('❌ Protobuf encoding failed:', protobufError)
+      // Fallback to JSON
+      buffer = Buffer.from(JSON.stringify(protoMessage))
+    }
     
     return new NextResponse(buffer, {
       status: 200,
