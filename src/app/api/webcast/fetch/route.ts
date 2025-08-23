@@ -7,7 +7,17 @@ let BinaryWriter: any
 
 try {
   const tikTokSchema = require('tiktok-live-connector/dist/types/tiktok-schema.js')
-  const wireModule = require('@bufbuild/protobuf/dist/cjs/wire/binary-encoding.js')
+  // Try different possible paths for the BinaryWriter
+  let wireModule
+  try {
+    wireModule = require('@bufbuild/protobuf/dist/cjs/wire/binary-encoding.js')
+  } catch {
+    try {
+      wireModule = require('@bufbuild/protobuf/dist/wire/binary-encoding.js')
+    } catch {
+      wireModule = require('@bufbuild/protobuf')
+    }
+  }
   
   ProtoMessageFetchResult = tikTokSchema.ProtoMessageFetchResult
   BinaryWriter = wireModule.BinaryWriter
@@ -15,6 +25,8 @@ try {
   console.log('✅ TikTok protobuf modules loaded successfully')
 } catch (error) {
   console.error('❌ Failed to load TikTok protobuf modules:', error)
+  ProtoMessageFetchResult = null
+  BinaryWriter = null
 }
 
 /**
@@ -221,7 +233,7 @@ export async function GET(request: NextRequest) {
       buffer = Buffer.from(JSON.stringify(protoMessage))
     }
     
-    return new NextResponse(buffer, {
+    return new NextResponse(buffer as any, {
       status: 200,
       headers: responseHeaders
     })
