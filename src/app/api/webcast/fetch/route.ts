@@ -273,6 +273,12 @@ export async function GET(request: NextRequest) {
     }
     
     console.log(`🎯 Request classified as ${tier.toUpperCase()} tier using ${authMethod} authentication`)
+  } catch (authError) {
+    console.error(`❌ [${requestId}] Authentication error:`, authError)
+    // Continue with free tier if authentication fails
+    tier = 'free'
+    authMethod = 'ip_based'
+  }
 
   try {
     // Extract required parameters for signature generation
