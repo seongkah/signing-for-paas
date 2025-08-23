@@ -310,7 +310,7 @@ export async function GET(request: NextRequest) {
             throw new Error('Encoder function not available')
           }
         } catch (encoderError) {
-          console.warn('⚠️ TikTok Live Connector encoder failed, using minimal protobuf:', encoderError.message)
+          console.warn('⚠️ TikTok Live Connector encoder failed, using minimal protobuf:', encoderError instanceof Error ? encoderError.message : String(encoderError))
           buffer = createMinimalProtobufResponse(fullMessage)
         }
       } else {
