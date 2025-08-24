@@ -102,6 +102,7 @@ export default function DashboardPage() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ name: newKeyName }),
+        credentials: 'include', // Include cookies for session authentication
       })
 
       const result = await response.json()
@@ -128,6 +129,7 @@ export default function DashboardPage() {
     try {
       const response = await fetch(`/api/api-keys/${keyId}`, {
         method: 'DELETE',
+        credentials: 'include', // Include cookies for session authentication
       })
 
       if (!response.ok) {

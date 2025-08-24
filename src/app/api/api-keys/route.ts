@@ -89,10 +89,17 @@ export async function GET(request: NextRequest) {
 
 // POST - Create new API key
 export async function POST(request: NextRequest) {
+  console.log('🔑 API Key creation request received')
+  console.log('   Headers:', Object.fromEntries(request.headers.entries()))
+  
   try {
-    const { name } = await request.json()
+    const body = await request.json()
+    console.log('   Request body:', body)
+    const { name } = body
 
     if (!name || typeof name !== 'string' || name.trim().length === 0) {
+      console.log('❌ Validation failed: missing or invalid name')
+      console.log('   Received name:', name, typeof name)
       return NextResponse.json(
         {
           success: false,
@@ -110,9 +117,18 @@ export async function POST(request: NextRequest) {
     const supabase = createServerSupabaseClient()
 
     // Get current user
+    console.log('🔍 Getting current user from session...')
     const { data: { user }, error: authError } = await supabase.auth.getUser()
+    
+    console.log('   Auth result:', {
+      hasUser: !!user,
+      userId: user?.id,
+      userEmail: user?.email,
+      authError: authError?.message
+    })
 
     if (authError || !user) {
+      console.log('❌ Authentication failed:', authError?.message || 'No user session')
       return NextResponse.json(
         {
           success: false,
