@@ -11,6 +11,7 @@ import { Label } from '@/components/ui/label'
 import { createClient } from '@/lib/supabase-client'
 import { MonitoringDashboard } from '@/components/monitoring/MonitoringDashboard'
 import { ComprehensiveMonitoring } from '@/components/monitoring/ComprehensiveMonitoring'
+import { ApiKeyExamples } from '@/components/ApiKeyExamples'
 
 interface ApiKey {
   id: string
@@ -38,6 +39,7 @@ export default function DashboardPage() {
   const [creatingKey, setCreatingKey] = useState(false)
   const [newApiKey, setNewApiKey] = useState('')
   const [activeTab, setActiveTab] = useState<'overview' | 'monitoring' | 'api-keys'>('overview')
+  const [copySuccess, setCopySuccess] = useState('')
   const supabase = createClient()
 
   useEffect(() => {
@@ -139,9 +141,27 @@ export default function DashboardPage() {
     }
   }
 
-  const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text)
-    // You could add a toast notification here
+  const copyToClipboard = (text: string, successMessage = 'Copied to clipboard!') => {
+    navigator.clipboard.writeText(text).then(() => {
+      setCopySuccess(successMessage)
+      setTimeout(() => setCopySuccess(''), 3000) // Clear after 3 seconds
+    }).catch(() => {
+      setCopySuccess('Failed to copy')
+      setTimeout(() => setCopySuccess(''), 3000)
+    })
+  }
+
+  // Helper function to mask API keys for display
+  const maskApiKey = (keyId: string, actualKey?: string) => {
+    if (actualKey) {
+      // For newly created keys, show partial masking: sk_053c...5ba
+      const start = actualKey.substring(0, 7) // "sk_053c"
+      const end = actualKey.substring(actualKey.length - 4) // last 4 chars
+      return `${start}...${end}`
+    }
+    // For existing keys, create a consistent mask from the key ID
+    const shortId = keyId.substring(0, 8)
+    return `sk_${shortId.substring(0, 4)}...****`
   }
 
   if (loading) {
@@ -216,32 +236,93 @@ export default function DashboardPage() {
               </Alert>
             )}
 
+            {copySuccess && (
+              <Alert className="mb-6 border-green-200 bg-green-50">
+                <AlertDescription className="text-green-800">
+                  ✅ {copySuccess}
+                </AlertDescription>
+              </Alert>
+            )}
+
             {newApiKey && (
-              <Alert className="mb-6">
+              <Alert className="mb-6 border-green-200 bg-green-50">
                 <AlertDescription>
-                  <div className="space-y-2">
-                    <p className="font-semibold">Your new API key has been created:</p>
-                    <div className="flex items-center space-x-2">
-                      <code className="bg-gray-100 px-2 py-1 rounded text-sm flex-1">
+                  <div className="space-y-4">
+                    <div>
+                      <p className="font-semibold text-green-800 flex items-center">
+                        🎉 API Key Created Successfully!
+                      </p>
+                      <p className="text-sm text-green-700 mt-1">
+                        Your new API key is ready to use. Copy it now and store it securely.
+                      </p>
+                    </div>
+                    
+                    <div className="bg-white border border-green-200 rounded-lg p-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <label className="text-sm font-medium text-gray-700">API Key:</label>
+                        <div className="flex space-x-2">
+                          <Button 
+                            size="sm" 
+                            onClick={() => copyToClipboard(newApiKey, 'API key copied to clipboard!')}
+                            className="bg-green-600 hover:bg-green-700"
+                          >
+                            📋 Copy Key
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => {
+                              const blob = new Blob([`API Key: ${newApiKey}\nCreated: ${new Date().toISOString()}\nService: TikTok Signing Service`], { type: 'text/plain' })
+                              const url = URL.createObjectURL(blob)
+                              const a = document.createElement('a')
+                              a.href = url
+                              a.download = 'tiktok-api-key.txt'
+                              a.click()
+                              URL.revokeObjectURL(url)
+                            }}
+                          >
+                            💾 Download
+                          </Button>
+                        </div>
+                      </div>
+                      <code className="block bg-gray-100 px-3 py-2 rounded text-sm font-mono break-all border">
                         {newApiKey}
                       </code>
+                    </div>
+
+                    <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+                      <p className="font-semibold text-red-800 text-sm">🔒 Security Important:</p>
+                      <ul className="text-sm text-red-700 mt-1 space-y-1">
+                        <li>• This key will <strong>never be shown again</strong> after you dismiss this message</li>
+                        <li>• Store it in a secure password manager or environment variables</li>
+                        <li>• Never commit API keys to version control systems</li>
+                        <li>• Use environment variables in production applications</li>
+                      </ul>
+                    </div>
+
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                      <p className="font-semibold text-blue-800 text-sm">📘 Usage Example:</p>
+                      <pre className="text-xs bg-blue-100 p-2 rounded mt-2 overflow-x-auto">
+{`curl -X POST https://signing-for-paas.vercel.app/api/signature \\
+  -H "Content-Type: application/json" \\
+  -H "X-API-Key: ${newApiKey}" \\
+  -d '{"url": "https://www.tiktok.com/@username/live"}'`}
+                      </pre>
+                    </div>
+
+                    <div className="flex justify-between items-center pt-2">
+                      <p className="text-xs text-gray-600">
+                        💡 Need help? Check the integration examples below.
+                      </p>
                       <Button 
                         size="sm" 
-                        onClick={() => copyToClipboard(newApiKey)}
+                        variant="outline" 
+                        onClick={() => setNewApiKey('')}
+                        className="text-red-600 border-red-300 hover:bg-red-50"
                       >
-                        Copy
+                        I've Saved It - Dismiss
                       </Button>
                     </div>
-                    <p className="text-sm text-yellow-600">
-                      ⚠️ Save this key now - you won&apos;t be able to see it again!
-                    </p>
-                    <Button 
-                      size="sm" 
-                      variant="outline" 
-                      onClick={() => setNewApiKey('')}
-                    >
-                      Dismiss
-                    </Button>
                   </div>
                 </AlertDescription>
               </Alert>
@@ -385,30 +466,63 @@ export default function DashboardPage() {
                     ) : (
                       <div className="space-y-4">
                         {apiKeys.map((key) => (
-                          <div key={key.id} className="border rounded-lg p-4">
+                          <div key={key.id} className="border rounded-lg p-4 bg-white shadow-sm">
                             <div className="flex justify-between items-start">
-                              <div className="flex-1">
-                                <h4 className="font-semibold">{key.name}</h4>
-                                <p className="text-sm text-gray-500">
-                                  Created: {new Date(key.created_at).toLocaleDateString()}
-                                </p>
-                                <p className="text-sm text-gray-500">
-                                  Last used: {key.last_used 
-                                    ? new Date(key.last_used).toLocaleDateString()
-                                    : 'Never'
-                                  }
-                                </p>
-                                <p className="text-xs text-gray-400 mt-2">
-                                  Key ID: {key.id}
-                                </p>
+                              <div className="flex-1 space-y-3">
+                                <div>
+                                  <h4 className="font-semibold text-gray-900 flex items-center">
+                                    {key.name}
+                                    <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                      Active
+                                    </span>
+                                  </h4>
+                                  <div className="flex items-center space-x-2 mt-2">
+                                    <code className="text-sm bg-gray-100 px-2 py-1 rounded border font-mono">
+                                      {maskApiKey(key.id)}
+                                    </code>
+                                    <Button 
+                                      size="sm" 
+                                      variant="outline"
+                                      onClick={() => copyToClipboard(`Example with your API key:\n\ncurl -X POST https://signing-for-paas.vercel.app/api/signature \\\n  -H "Content-Type: application/json" \\\n  -H "X-API-Key: YOUR_ACTUAL_API_KEY_HERE" \\\n  -d '{"url": "https://www.tiktok.com/@username/live"}'`, 'Code example copied to clipboard!')}
+                                      className="text-xs"
+                                    >
+                                      📋 Copy Example
+                                    </Button>
+                                  </div>
+                                </div>
+                                
+                                <div className="grid grid-cols-2 gap-4 text-sm">
+                                  <div>
+                                    <span className="text-gray-500">Created:</span>
+                                    <p className="font-medium">{new Date(key.created_at).toLocaleDateString()}</p>
+                                  </div>
+                                  <div>
+                                    <span className="text-gray-500">Last used:</span>
+                                    <p className="font-medium">
+                                      {key.last_used 
+                                        ? new Date(key.last_used).toLocaleDateString()
+                                        : 'Never'
+                                      }
+                                    </p>
+                                  </div>
+                                </div>
+
+                                <div className="bg-blue-50 border border-blue-200 rounded p-2">
+                                  <p className="text-xs text-blue-700">
+                                    💡 <strong>Usage:</strong> Add <code className="bg-blue-100 px-1 rounded">X-API-Key: YOUR_KEY</code> to your requests for unlimited access
+                                  </p>
+                                </div>
                               </div>
-                              <Button 
-                                variant="destructive" 
-                                size="sm"
-                                onClick={() => deleteApiKey(key.id)}
-                              >
-                                Delete
-                              </Button>
+                              
+                              <div className="ml-4">
+                                <Button 
+                                  variant="destructive" 
+                                  size="sm"
+                                  onClick={() => deleteApiKey(key.id)}
+                                >
+                                  🗑️ Delete
+                                </Button>
+                              </div>
                             </div>
                           </div>
                         ))}
@@ -417,6 +531,9 @@ export default function DashboardPage() {
                   </div>
                 </CardContent>
               </Card>
+              
+              {/* Integration Examples */}
+              <ApiKeyExamples hasApiKeys={apiKeys.length > 0} onCopy={copyToClipboard} />
               </div>
             )}
           </div>
