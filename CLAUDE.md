@@ -17,20 +17,20 @@ This is a **TikTok Signing Platform-as-a-Service** built with Next.js 14 and Sup
 ### Supabase Configuration
 - **Project ID**: `wfxyvtmvftygvddxspxw`
 - **API Authentication**: Use `X-API-Key` header (NOT `Authorization: Bearer`)
-- **API Key Format**: Raw UUID format (e.g., `ce9af56a-6cc1-4820-83fb-cfcaaf87cf9c`)
+- **API Key Format**: Raw UUID format (e.g., `your-api-key-uuid-here`)
 
 ### API Usage Examples
 ```bash
 # Correct API key header format
 curl -X POST "https://signing-for-paas.vercel.app/api/signature" \
   -H "Content-Type: application/json" \
-  -H "X-API-Key: ce9af56a-6cc1-4820-83fb-cfcaaf87cf9c" \
+  -H "X-API-Key: YOUR_API_KEY_HERE" \
   -d '{"url": "https://www.tiktok.com/@testuser/live"}'
 
 # EulerStream compatibility endpoint
 curl -X POST "https://signing-for-paas.vercel.app/api/eulerstream" \
   -H "Content-Type: application/json" \
-  -H "X-API-Key: ce9af56a-6cc1-4820-83fb-cfcaaf87cf9c" \
+  -H "X-API-Key: YOUR_API_KEY_HERE" \
   -d '{"url": "https://www.tiktok.com/@testuser/live"}'
 ```
 

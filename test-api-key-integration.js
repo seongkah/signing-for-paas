@@ -10,7 +10,7 @@ const https = require('https')
 const BASE_URL = 'https://signing-for-paas.vercel.app'
 
 // Sample API key for testing (replace with actual if available)
-const TEST_API_KEY = 'test-key-ce9af56a-6cc1-4820-83fb-cfcaaf87cf9c'
+const TEST_API_KEY = 'test-key-for-integration-testing-replace-with-real-key'
 
 async function makeRequest(endpoint, method = 'GET', data = null, headers = {}) {
   return new Promise((resolve, reject) => {
