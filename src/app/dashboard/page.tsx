@@ -94,8 +94,12 @@ export default function DashboardPage() {
 
     setCreatingKey(true)
     setError('')
+    setNewApiKey('') // Clear any previous API key
 
     try {
+      console.log('🔑 Starting API key creation...')
+      console.log('🔑 Key name:', newKeyName)
+      
       const response = await fetch('/api/api-keys', {
         method: 'POST',
         headers: {
@@ -105,19 +109,57 @@ export default function DashboardPage() {
         credentials: 'include', // Include cookies for session authentication
       })
 
+      console.log('🔑 Response status:', response.status)
+      console.log('🔑 Response ok:', response.ok)
+      
       const result = await response.json()
+      console.log('🔑 Full response structure:', JSON.stringify(result, null, 2))
+      console.log('🔑 Response data:', result.data)
+      console.log('🔑 API key from response:', result.data?.key || result.data?.apiKey?.key || result.key)
 
       if (!response.ok) {
-        throw new Error(result.error || 'Failed to create API key')
+        console.error('🔑 API key creation failed with status:', response.status)
+        console.error('🔑 Error response body:', result)
+        
+        let errorMessage = 'Failed to create API key'
+        if (result.error) {
+          if (typeof result.error === 'string') {
+            errorMessage = result.error
+          } else if (result.error.message) {
+            errorMessage = result.error.message
+          } else {
+            errorMessage = JSON.stringify(result.error)
+          }
+        }
+        
+        throw new Error(errorMessage)
       }
 
-      setNewApiKey(result.data.key)
+      // Try different possible paths for the API key
+      const apiKey = result.data?.apiKey?.key || result.data?.key || result.key || result.apiKey
+      console.log('🔑 Extracted API key:', apiKey ? 'Found (length: ' + apiKey.length + ')' : 'Not found')
+      
+      if (!apiKey) {
+        console.error('🔑 No API key found in response:', result)
+        throw new Error('API key not found in server response')
+      }
+
+      console.log('🔑 Setting newApiKey state to show popup...')
+      setNewApiKey(apiKey)
       setNewKeyName('')
+      
+      console.log('🔑 Refreshing user data...')
       await fetchUserData() // Refresh the list
+      
+      console.log('🔑 API key creation completed successfully!')
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to create API key')
+      console.error('🔑 API key creation error:', err)
+      const errorMessage = err instanceof Error ? err.message : 'Failed to create API key'
+      console.error('🔑 Setting error message:', errorMessage)
+      setError(errorMessage)
     } finally {
       setCreatingKey(false)
+      console.log('🔑 API key creation process finished')
     }
   }
 
@@ -247,15 +289,15 @@ export default function DashboardPage() {
             )}
 
             {newApiKey && (
-              <Alert className="mb-6 border-green-200 bg-green-50">
+              <Alert className="mb-6 border-green-200 bg-green-50 shadow-lg ring-2 ring-green-200">
                 <AlertDescription>
                   <div className="space-y-4">
                     <div>
-                      <p className="font-semibold text-green-800 flex items-center">
+                      <p className="font-bold text-green-800 flex items-center text-lg">
                         🎉 API Key Created Successfully!
                       </p>
-                      <p className="text-sm text-green-700 mt-1">
-                        Your new API key is ready to use. Copy it now and store it securely.
+                      <p className="text-sm text-green-700 mt-1 font-medium">
+                        Your new API key is ready to use. Copy it now and store it securely - it will never be shown again!
                       </p>
                     </div>
                     
