@@ -97,9 +97,6 @@ export default function DashboardPage() {
     setNewApiKey('') // Clear any previous API key
 
     try {
-      console.log('🔑 Starting API key creation...')
-      console.log('🔑 Key name:', newKeyName)
-      
       const response = await fetch('/api/api-keys', {
         method: 'POST',
         headers: {
@@ -109,18 +106,9 @@ export default function DashboardPage() {
         credentials: 'include', // Include cookies for session authentication
       })
 
-      console.log('🔑 Response status:', response.status)
-      console.log('🔑 Response ok:', response.ok)
-      
       const result = await response.json()
-      console.log('🔑 Full response structure:', JSON.stringify(result, null, 2))
-      console.log('🔑 Response data:', result.data)
-      console.log('🔑 API key from response:', result.data?.key || result.data?.apiKey?.key || result.key)
 
       if (!response.ok) {
-        console.error('🔑 API key creation failed with status:', response.status)
-        console.error('🔑 Error response body:', result)
-        
         let errorMessage = 'Failed to create API key'
         if (result.error) {
           if (typeof result.error === 'string') {
@@ -137,29 +125,19 @@ export default function DashboardPage() {
 
       // Try different possible paths for the API key
       const apiKey = result.data?.apiKey?.key || result.data?.key || result.key || result.apiKey
-      console.log('🔑 Extracted API key:', apiKey ? 'Found (length: ' + apiKey.length + ')' : 'Not found')
       
       if (!apiKey) {
-        console.error('🔑 No API key found in response:', result)
         throw new Error('API key not found in server response')
       }
 
-      console.log('🔑 Setting newApiKey state to show popup...')
       setNewApiKey(apiKey)
       setNewKeyName('')
-      
-      console.log('🔑 Refreshing user data...')
       await fetchUserData() // Refresh the list
-      
-      console.log('🔑 API key creation completed successfully!')
     } catch (err) {
-      console.error('🔑 API key creation error:', err)
       const errorMessage = err instanceof Error ? err.message : 'Failed to create API key'
-      console.error('🔑 Setting error message:', errorMessage)
       setError(errorMessage)
     } finally {
       setCreatingKey(false)
-      console.log('🔑 API key creation process finished')
     }
   }
 

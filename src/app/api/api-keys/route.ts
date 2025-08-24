@@ -9,12 +9,9 @@ let Database: any = null
 try {
   const supabaseSSR = require('@supabase/ssr')
   createServerClient = supabaseSSR.createServerClient
-  console.log('✅ Supabase SSR imported successfully')
 } catch (importError) {
-  console.error('❌ Failed to import Supabase SSR:', importError)
+  console.error('Failed to import Supabase SSR:', importError)
 }
-
-console.log('✅ API keys route module loaded successfully')
 
 // Safe Supabase client creation without cookies() dependency
 function createSafeSupabaseClient(useServiceRole = false) {
@@ -48,87 +45,64 @@ function createSafeSupabaseClient(useServiceRole = false) {
 // Parse session from cookie header directly
 function parseSessionFromCookies(cookieHeader: string | null): any {
   if (!cookieHeader) {
-    console.log('❌ No cookie header found')
     return null
   }
   
-  console.log('🔍 Parsing cookies, header length:', cookieHeader.length)
-  console.log('🔍 Cookie header preview:', cookieHeader.substring(0, 200) + '...')
-  
   try {
-    // Look for Supabase session tokens in cookie header
     const cookies = cookieHeader.split(';')
-    console.log('🔍 Found', cookies.length, 'cookies')
-    
-    let supabaseCookieCount = 0
     for (const cookie of cookies) {
       const [name, value] = cookie.trim().split('=')
       
-      // Log all cookies for debugging
-      if (name.includes('supabase') || name.includes('sb-') || name.includes('auth')) {
-        supabaseCookieCount++
-        console.log('🔍 Found auth-related cookie:', name, 'length:', value?.length || 0)
+      // Look for Supabase session cookies
+      if ((name.includes('supabase') && (name.includes('auth') || name.includes('token'))) ||
+          name.startsWith('sb-') ||
+          name.includes('sb-wfxyvtmvftygvddxspxw-auth-token') ||
+          (name.includes('auth-token') && name.includes('sb-')) ||
+          (name.includes('auth') && value && value.length > 20)) {
+          
+        let userId = 'authenticated-user'
         
-        // More flexible matching for Supabase cookies
-        if ((name.includes('supabase') && (name.includes('auth') || name.includes('token'))) ||
-            name.startsWith('sb-') ||
-            name.includes('sb-wfxyvtmvftygvddxspxw-auth-token') ||
-            (name.includes('auth-token') && name.includes('sb-')) ||
-            (name.includes('auth') && value && value.length > 20)) {
-          
-          console.log('✅ Found valid session cookie:', name)
-          
-          // Try to extract user info from cookie value
-          let userId = 'authenticated-user'
-          
-          try {
-            // Handle URL-encoded JSON format (like your cookie)
-            if (value && value.includes('%22')) {
-              console.log('🔍 Attempting to decode URL-encoded cookie')
-              const decoded = decodeURIComponent(value)
-              const sessionData = JSON.parse(decoded)
-              
-              if (sessionData.user?.id) {
-                userId = sessionData.user.id
-                console.log('✅ Extracted user ID from session data:', userId.substring(0, 8) + '...')
-              } else if (sessionData.access_token) {
-                // Try to parse JWT from access_token
-                const parts = sessionData.access_token.split('.')
-                if (parts.length >= 2) {
-                  const payload = JSON.parse(atob(parts[1]))
-                  if (payload.sub) {
-                    userId = payload.sub
-                    console.log('✅ Extracted user ID from JWT:', userId.substring(0, 8) + '...')
-                  }
-                }
-              }
-            } else if (value && value.includes('.')) {
-              // Direct JWT parsing
-              const parts = value.split('.')
+        try {
+          // Handle URL-encoded JSON format
+          if (value && value.includes('%22')) {
+            const decoded = decodeURIComponent(value)
+            const sessionData = JSON.parse(decoded)
+            
+            if (sessionData.user?.id) {
+              userId = sessionData.user.id
+            } else if (sessionData.access_token) {
+              // Parse JWT from access_token
+              const parts = sessionData.access_token.split('.')
               if (parts.length >= 2) {
                 const payload = JSON.parse(atob(parts[1]))
                 if (payload.sub) {
                   userId = payload.sub
-                  console.log('✅ Extracted user ID from JWT:', userId.substring(0, 8) + '...')
                 }
               }
             }
-          } catch (parseError) {
-            console.log('⚠️ Could not parse cookie value, using default user ID:', parseError instanceof Error ? parseError.message : 'Unknown error')
+          } else if (value && value.includes('.')) {
+            // Direct JWT parsing
+            const parts = value.split('.')
+            if (parts.length >= 2) {
+              const payload = JSON.parse(atob(parts[1]))
+              if (payload.sub) {
+                userId = payload.sub
+              }
+            }
           }
-          
-          return { hasSession: true, userId: userId }
+        } catch (parseError) {
+          // Use default userId if parsing fails
         }
+        
+        return { hasSession: true, userId: userId }
       }
     }
     
-    console.log('❌ No valid session found in', supabaseCookieCount, 'auth-related cookies')
-    
+    return null
   } catch (error) {
-    console.error('❌ Failed to parse session from cookies:', error)
+    console.error('Error parsing cookies:', error)
+    return null
   }
-  
-  return null
 }
 
 // Generate API key
@@ -140,8 +114,6 @@ function generateApiKey(): { key: string; hash: string } {
 
 // GET - List user's API keys
 export async function GET(request: NextRequest) {
-  console.log('✅ API keys GET function started')
-  
   try {
     // Check authentication using cookie header parsing
     const cookieHeader = request.headers.get('cookie')
@@ -160,7 +132,6 @@ export async function GET(request: NextRequest) {
     }
 
     const user = { id: sessionInfo.userId }
-    console.log('✅ Authentication successful for GET request')
 
     // Create Supabase service client
     const supabase = createSafeSupabaseClient(true) // Use service role
@@ -197,7 +168,6 @@ export async function GET(request: NextRequest) {
       }, { status: 500 })
     }
 
-    console.log('✅ Retrieved', apiKeys?.length || 0, 'API keys')
 
     return NextResponse.json({
       success: true,
@@ -228,18 +198,12 @@ export async function GET(request: NextRequest) {
 
 // POST - Create new API key
 export async function POST(request: NextRequest) {
-  console.log('✅ API key creation POST function started')
-  console.log('✅ Timestamp:', new Date().toISOString())
-  console.log('✅ Request URL:', request.url)
-  
   try {
     // Parse request body
     let body: any = null
     try {
       body = await request.json()
-      console.log('✅ Body parsed successfully:', typeof body)
     } catch (bodyError) {
-      console.log('❌ Body parse failed:', bodyError)
       return NextResponse.json({
         success: false,
         error: {
@@ -254,7 +218,6 @@ export async function POST(request: NextRequest) {
     // Validate name
     const { name } = body
     if (!name || typeof name !== 'string' || name.trim().length === 0) {
-      console.log('❌ Name validation failed')
       return NextResponse.json({
         success: false,
         error: {
@@ -266,24 +229,17 @@ export async function POST(request: NextRequest) {
       }, { status: 400 })
     }
     
-    console.log('✅ Name validated:', name)
-    
     // Check authentication using cookie header parsing
     let user: any = null
     let isAuthenticated = false
     
     try {
-      console.log('✅ Checking authentication...')
       const cookieHeader = request.headers.get('cookie')
-      console.log('✅ Cookie header length:', cookieHeader?.length || 0)
-      
       const sessionInfo = parseSessionFromCookies(cookieHeader)
       if (sessionInfo?.hasSession) {
-        console.log('✅ Session found in cookies')
         isAuthenticated = true
         user = { id: sessionInfo.userId, email: 'authenticated-user@example.com' }
       } else {
-        console.log('❌ No session found')
         return NextResponse.json({
           success: false,
           error: {
@@ -295,7 +251,6 @@ export async function POST(request: NextRequest) {
         }, { status: 401 })
       }
     } catch (authError) {
-      console.log('❌ Authentication failed:', authError)
       return NextResponse.json({
         success: false,
         error: {
@@ -307,12 +262,9 @@ export async function POST(request: NextRequest) {
       }, { status: 401 })
     }
     
-    console.log('✅ Authentication successful for user:', user.id)
-    
     // Create Supabase client for database operations
     const supabase = createSafeSupabaseClient(true) // Use service role
     if (!supabase) {
-      console.log('❌ Failed to create Supabase client')
       return NextResponse.json({
         success: false,
         error: {
@@ -324,11 +276,8 @@ export async function POST(request: NextRequest) {
       }, { status: 500 })
     }
     
-    console.log('✅ Supabase service client created')
-    
     // Generate new API key
     const { key, hash } = generateApiKey()
-    console.log('✅ API key generated')
     
     // Store API key in database
     const { data: apiKeyData, error: insertError } = await supabase
@@ -343,7 +292,7 @@ export async function POST(request: NextRequest) {
       .single()
 
     if (insertError || !apiKeyData) {
-      console.error('❌ Failed to create API key:', insertError)
+      console.error('Failed to create API key:', insertError)
       return NextResponse.json({
         success: false,
         error: {
@@ -355,8 +304,6 @@ export async function POST(request: NextRequest) {
       }, { status: 500 })
     }
 
-    console.log('✅ API key stored in database:', apiKeyData.id)
-
     // Update user tier to 'api_key'
     const { error: tierUpdateError } = await supabase
       .from('users')
@@ -364,11 +311,9 @@ export async function POST(request: NextRequest) {
       .eq('id', user.id)
 
     if (tierUpdateError) {
-      console.error('⚠️ Failed to update user tier:', tierUpdateError)
+      console.error('Failed to update user tier:', tierUpdateError)
       // Don't fail the request for this
     }
-
-    console.log('✅ About to return success response')
 
     return NextResponse.json({
       success: true,
@@ -385,8 +330,7 @@ export async function POST(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('❌ Fatal error in API key creation:', error)
-    console.error('❌ Error stack:', error instanceof Error ? error.stack : 'No stack')
+    console.error('Fatal error in API key creation:', error)
     
     return NextResponse.json({
       success: false,
