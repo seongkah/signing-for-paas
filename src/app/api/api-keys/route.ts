@@ -3,6 +3,9 @@ import { createServerSupabaseClient, createServiceSupabaseClient } from '@/lib/s
 import { ErrorType } from '@/types'
 import { createHash, randomBytes } from 'crypto'
 
+// CRITICAL DEBUG: Log module loading
+console.log('🔥 CRITICAL DEBUG: API keys route module loaded at:', new Date().toISOString())
+
 // Generate API key
 function generateApiKey(): { key: string; hash: string } {
   const key = `sk_${randomBytes(32).toString('hex')}`
@@ -93,13 +96,46 @@ export async function GET(request: NextRequest) {
 
 // POST - Create new API key
 export async function POST(request: NextRequest) {
-  console.log('🔑 API Key creation request received')
-  console.log('   Headers:', Object.fromEntries(request.headers.entries()))
+  // ABSOLUTE FIRST THING - log before any other code
+  console.log('🔥 CRITICAL DEBUG: POST function entered - FIRST LINE')
+  console.log('🔥 CRITICAL DEBUG: Timestamp:', new Date().toISOString())
+  console.log('🔥 CRITICAL DEBUG: Request method:', request.method)
+  console.log('🔥 CRITICAL DEBUG: Request URL:', request.url)
   
   try {
-    const body = await request.json()
-    console.log('   Request body:', body)
-    const { name } = body
+    console.log('🔑 API Key creation request received')
+    
+    // Test header reading first
+    let headers: any = {}
+    try {
+      headers = Object.fromEntries(request.headers.entries())
+      console.log('   Headers count:', Object.keys(headers).length)
+    } catch (headerError) {
+      console.error('🔥 CRITICAL DEBUG: Header reading failed:', headerError)
+    }
+    
+    // Test body parsing with detailed error handling
+    let body: any = null
+    let name: string = ''
+    
+    try {
+      console.log('🔥 CRITICAL DEBUG: About to parse request body')
+      body = await request.json()
+      console.log('🔥 CRITICAL DEBUG: Body parsed successfully:', typeof body)
+      console.log('   Request body:', body)
+      name = body.name
+    } catch (bodyError) {
+      console.error('🔥 CRITICAL DEBUG: Body parsing failed:', bodyError)
+      return NextResponse.json({
+        success: false,
+        error: {
+          type: ErrorType.VALIDATION_ERROR,
+          message: 'Invalid request body - must be valid JSON',
+          code: 'INVALID_BODY',
+          timestamp: new Date()
+        }
+      }, { status: 400 })
+    }
 
     if (!name || typeof name !== 'string' || name.trim().length === 0) {
       console.log('❌ Validation failed: missing or invalid name')
@@ -246,6 +282,10 @@ export async function POST(request: NextRequest) {
     })
 
   } catch (error) {
+    console.error('🔥 CRITICAL DEBUG: Catch block reached - error occurred')
+    console.error('🔥 CRITICAL DEBUG: Error type:', typeof error)
+    console.error('🔥 CRITICAL DEBUG: Error message:', error instanceof Error ? error.message : String(error))
+    console.error('🔥 CRITICAL DEBUG: Error stack:', error instanceof Error ? error.stack : 'No stack trace')
     console.error('Create API key error:', error)
     return NextResponse.json(
       {
