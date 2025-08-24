@@ -320,7 +320,7 @@ export default function DashboardPage() {
                         onClick={() => setNewApiKey('')}
                         className="text-red-600 border-red-300 hover:bg-red-50"
                       >
-                        I've Saved It - Dismiss
+                        I&apos;ve Saved It - Dismiss
                       </Button>
                     </div>
                   </div>
