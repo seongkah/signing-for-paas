@@ -72,15 +72,38 @@ function parseSessionFromCookies(cookieHeader: string | null): any {
         // More flexible matching for Supabase cookies
         if ((name.includes('supabase') && (name.includes('auth') || name.includes('token'))) ||
             name.startsWith('sb-') ||
+            name.includes('sb-wfxyvtmvftygvddxspxw-auth-token') ||
+            (name.includes('auth-token') && name.includes('sb-')) ||
             (name.includes('auth') && value && value.length > 20)) {
           
           console.log('✅ Found valid session cookie:', name)
           
-          // Try to extract user info from cookie value if it's a JWT
+          // Try to extract user info from cookie value
           let userId = 'authenticated-user'
-          if (value && value.includes('.')) {
-            try {
-              // Basic JWT parsing to get user ID
+          
+          try {
+            // Handle URL-encoded JSON format (like your cookie)
+            if (value && value.includes('%22')) {
+              console.log('🔍 Attempting to decode URL-encoded cookie')
+              const decoded = decodeURIComponent(value)
+              const sessionData = JSON.parse(decoded)
+              
+              if (sessionData.user?.id) {
+                userId = sessionData.user.id
+                console.log('✅ Extracted user ID from session data:', userId.substring(0, 8) + '...')
+              } else if (sessionData.access_token) {
+                // Try to parse JWT from access_token
+                const parts = sessionData.access_token.split('.')
+                if (parts.length >= 2) {
+                  const payload = JSON.parse(atob(parts[1]))
+                  if (payload.sub) {
+                    userId = payload.sub
+                    console.log('✅ Extracted user ID from JWT:', userId.substring(0, 8) + '...')
+                  }
+                }
+              }
+            } else if (value && value.includes('.')) {
+              // Direct JWT parsing
               const parts = value.split('.')
               if (parts.length >= 2) {
                 const payload = JSON.parse(atob(parts[1]))
@@ -89,9 +112,9 @@ function parseSessionFromCookies(cookieHeader: string | null): any {
                   console.log('✅ Extracted user ID from JWT:', userId.substring(0, 8) + '...')
                 }
               }
-            } catch (jwtError) {
-              console.log('⚠️ Could not parse JWT, using default user ID')
             }
+          } catch (parseError) {
+            console.log('⚠️ Could not parse cookie value, using default user ID:', parseError instanceof Error ? parseError.message : 'Unknown error')
           }
           
           return { hasSession: true, userId: userId }
