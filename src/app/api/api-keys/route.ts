@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createServerSupabaseClient } from '@/lib/supabase-server'
+import { createServerSupabaseClient, createServiceSupabaseClient } from '@/lib/supabase-server'
 import { ErrorType } from '@/types'
 import { createHash, randomBytes } from 'crypto'
 
@@ -13,10 +13,11 @@ function generateApiKey(): { key: string; hash: string } {
 // GET - List user's API keys
 export async function GET(request: NextRequest) {
   try {
-    const supabase = createServerSupabaseClient()
+    // Use session client for authentication (anonymous key + cookies)
+    const sessionSupabase = createServerSupabaseClient()
 
-    // Get current user
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    // Get current user from session
+    const { data: { user }, error: authError } = await sessionSupabase.auth.getUser()
 
     if (authError || !user) {
       return NextResponse.json(
@@ -32,6 +33,9 @@ export async function GET(request: NextRequest) {
         { status: 401 }
       )
     }
+
+    // Use service client for database operations (service role bypasses RLS)
+    const supabase = createServiceSupabaseClient()
 
     // Get user's API keys
     const { data: apiKeys, error: keysError } = await supabase
@@ -114,11 +118,12 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const supabase = createServerSupabaseClient()
+    // Use session client for authentication (anonymous key + cookies)
+    const sessionSupabase = createServerSupabaseClient()
 
-    // Get current user
+    // Get current user from session
     console.log('🔍 Getting current user from session...')
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    const { data: { user }, error: authError } = await sessionSupabase.auth.getUser()
     
     console.log('   Auth result:', {
       hasUser: !!user,
@@ -142,6 +147,10 @@ export async function POST(request: NextRequest) {
         { status: 401 }
       )
     }
+
+    // Use service client for database operations (service role bypasses RLS)
+    const supabase = createServiceSupabaseClient()
+    console.log('🔧 Using service role client for database operations')
 
     // Check if user already has too many API keys (limit to 5)
     const { count, error: countError } = await supabase
