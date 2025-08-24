@@ -47,20 +47,62 @@ function createSafeSupabaseClient(useServiceRole = false) {
 
 // Parse session from cookie header directly
 function parseSessionFromCookies(cookieHeader: string | null): any {
-  if (!cookieHeader) return null
+  if (!cookieHeader) {
+    console.log('❌ No cookie header found')
+    return null
+  }
+  
+  console.log('🔍 Parsing cookies, header length:', cookieHeader.length)
+  console.log('🔍 Cookie header preview:', cookieHeader.substring(0, 200) + '...')
   
   try {
     // Look for Supabase session tokens in cookie header
     const cookies = cookieHeader.split(';')
+    console.log('🔍 Found', cookies.length, 'cookies')
+    
+    let supabaseCookieCount = 0
     for (const cookie of cookies) {
       const [name, value] = cookie.trim().split('=')
-      if (name.includes('supabase') && name.includes('auth-token')) {
-        // Found a potential session token
-        return { hasSession: true, userId: 'authenticated-user' }
+      
+      // Log all cookies for debugging
+      if (name.includes('supabase') || name.includes('sb-') || name.includes('auth')) {
+        supabaseCookieCount++
+        console.log('🔍 Found auth-related cookie:', name, 'length:', value?.length || 0)
+        
+        // More flexible matching for Supabase cookies
+        if ((name.includes('supabase') && (name.includes('auth') || name.includes('token'))) ||
+            name.startsWith('sb-') ||
+            (name.includes('auth') && value && value.length > 20)) {
+          
+          console.log('✅ Found valid session cookie:', name)
+          
+          // Try to extract user info from cookie value if it's a JWT
+          let userId = 'authenticated-user'
+          if (value && value.includes('.')) {
+            try {
+              // Basic JWT parsing to get user ID
+              const parts = value.split('.')
+              if (parts.length >= 2) {
+                const payload = JSON.parse(atob(parts[1]))
+                if (payload.sub) {
+                  userId = payload.sub
+                  console.log('✅ Extracted user ID from JWT:', userId.substring(0, 8) + '...')
+                }
+              }
+            } catch (jwtError) {
+              console.log('⚠️ Could not parse JWT, using default user ID')
+            }
+          }
+          
+          return { hasSession: true, userId: userId }
+        }
       }
     }
+    
+    console.log('❌ No valid session found in', supabaseCookieCount, 'auth-related cookies')
+    
   } catch (error) {
-    console.error('Failed to parse session from cookies:', error)
+    console.error('❌ Failed to parse session from cookies:', error)
   }
   
   return null
