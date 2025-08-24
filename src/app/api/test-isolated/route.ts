@@ -14,10 +14,7 @@ export async function POST(request: NextRequest) {
     console.log('🔥 ISOLATED: Testing basic request processing...')
     
     // Test header reading
-    const headers: any = {}
-    for (const [key, value] of request.headers.entries()) {
-      headers[key] = value
-    }
+    const headers = Object.fromEntries(request.headers.entries())
     console.log('🔥 ISOLATED: Headers parsed, count:', Object.keys(headers).length)
     
     // Test body parsing
