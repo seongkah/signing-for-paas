@@ -1,11 +1,12 @@
 const path = require('path')
+const CopyPlugin = require('copy-webpack-plugin')
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
     domains: ['localhost'],
   },
-  webpack: (config) => {
+  webpack: (config, { isServer }) => {
     config.resolve.alias = {
       ...config.resolve.alias,
       '@': path.join(__dirname, 'src'),
@@ -14,6 +15,22 @@ const nextConfig = {
       '@/types': path.join(__dirname, 'src/types'),
       '@/app': path.join(__dirname, 'src/app'),
     }
+
+    // Copy SignTok JavaScript files for server-side usage
+    if (isServer) {
+      config.plugins.push(
+        new CopyPlugin({
+          patterns: [
+            {
+              from: path.join(__dirname, 'node_modules/signtok/js'),
+              to: path.join(__dirname, '.next/server/app/api/js'),
+              noErrorOnMissing: true,
+            },
+          ],
+        })
+      )
+    }
+
     return config
   },
   env: {

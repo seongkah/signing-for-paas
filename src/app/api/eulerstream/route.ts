@@ -138,9 +138,55 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // TODO: Implement actual signature generation logic
-    // For now, return EulerStream-compatible response format
+    // REAL SIGNATURE GENERATION using SignTok
+    const SignatureGenerator = require('../../../SignatureGenerator');
+    const sigGenerator = new SignatureGenerator('INFO');
+    
+    const signatureResult = sigGenerator.generateSignature(roomUrl);
     const responseTime = Date.now() - startTime
+    
+    // Check if signature generation succeeded
+    if (!signatureResult.success) {
+      // Log failed signature generation
+      if (authContext) {
+        await usageLogOps.logRequest({
+          userId: authContext.user.id,
+          apiKeyId: authContext.apiKey?.id,
+          roomUrl,
+          success: false,
+          responseTimeMs: responseTime,
+          errorMessage: signatureResult.error + ': ' + signatureResult.details
+        })
+      } else {
+        await logIPRequest({
+          ipAddress: userIP,
+          roomUrl,
+          success: false,
+          responseTimeMs: responseTime,
+          errorMessage: signatureResult.error + ': ' + signatureResult.details
+        })
+      }
+
+      // Log to signature_logs table
+      await logSignatureRequest({
+        request,
+        endpoint: '/api/eulerstream',
+        roomUrl,
+        requestFormat: 'eulerstream',
+        authContext,
+        success: false,
+        responseTimeMs: responseTime,
+        errorType: 'SIGNATURE_GENERATION_FAILED',
+        errorMessage: signatureResult.error + ': ' + signatureResult.details
+      })
+
+      return NextResponse.json({
+        success: false,
+        error: 'Signature generation failed',
+        message: signatureResult.error,
+        details: signatureResult.details
+      }, { status: 500 })
+    }
     
     // Log request based on tier
     if (authContext) {
@@ -169,6 +215,9 @@ export async function POST(request: NextRequest) {
       await incrementIPUsage(userIP)
     }
 
+    // Extract real signature data
+    const realSignatureData = signatureResult.data;
+    
     // COMPREHENSIVE LOGGING: Log to signature_logs table for all requests
     await logSignatureRequest({
       request,
@@ -178,19 +227,19 @@ export async function POST(request: NextRequest) {
       authContext,
       success: true,
       responseTimeMs: responseTime,
-      signatureType: 'mock', // TODO: Update when real signature is implemented
-      signatureLength: 'placeholder_signature'.length
+      signatureType: 'real', // Updated: Now using REAL signature generation
+      signatureLength: realSignatureData?.signature?.length || 0
     })
 
-    // EulerStream-compatible response format
+    // EulerStream-compatible response format with REAL signature data
     return NextResponse.json({
       success: true,
       data: {
-        signature: 'placeholder_signature',
-        signed_url: `${roomUrl}?signature=placeholder`,
-        'X-Bogus': 'placeholder_x_bogus',
-        'x-tt-params': 'placeholder_params',
-        navigator: {
+        signature: realSignatureData.signature || 'signature_not_generated',
+        signed_url: realSignatureData.signed_url || `${roomUrl}?signature=${realSignatureData.signature || ''}`,
+        'X-Bogus': realSignatureData['X-Bogus'] || realSignatureData.xBogus || 'x_bogus_not_generated',
+        'x-tt-params': realSignatureData['x-tt-params'] || realSignatureData.xTtParams || 'params_not_generated',
+        navigator: realSignatureData.navigator || {
           deviceScaleFactor: 1,
           user_agent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
           browser_language: 'en-US',
