@@ -139,10 +139,12 @@ async function handleSignatureGeneration(request: NextRequest, context: ApiConte
       }
     }
 
-    // Generate signature using mock implementation
-    // TODO: Replace with actual SignatureGenerator integration in later tasks
+    // VERCEL-COMPATIBLE SIGNATURE GENERATION
+    const VercelSignatureGenerator = require('../../../VercelSignatureGenerator');
+    const sigGenerator = new VercelSignatureGenerator('INFO');
+    
+    const signatureResult = sigGenerator.generateSignature(roomUrl);
     const responseTime = Date.now() - startTime
-    const signatureResult = createMockSignatureResult(roomUrl, responseTime)
     
     if (!signatureResult.success) {
       throw createSignatureError('Failed to generate signature', { roomUrl, details: signatureResult });

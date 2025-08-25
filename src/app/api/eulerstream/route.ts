@@ -138,9 +138,10 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // REAL SIGNATURE GENERATION using SignTok
-    const SignatureGenerator = require('../../../SignatureGenerator');
-    const sigGenerator = new SignatureGenerator('INFO');
+    // VERCEL-COMPATIBLE SIGNATURE GENERATION
+    // Use VercelSignatureGenerator for serverless deployment compatibility
+    const VercelSignatureGenerator = require('../../../VercelSignatureGenerator');
+    const sigGenerator = new VercelSignatureGenerator('INFO');
     
     const signatureResult = sigGenerator.generateSignature(roomUrl);
     const responseTime = Date.now() - startTime
